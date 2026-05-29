@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Will You Go Out With Me?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-a: #ffe3ef;
+      --bg-b: #f7d9ff;
+      --bg-c: #ffe9c8;
+      --card: rgba(255, 255, 255, 0.72);
+      --card-strong: rgba(255, 255, 255, 0.9);
+      --ink: #4b3758;
+      --muted: #7d678d;
+      --pink: #ff7fb3;
+      --pink-strong: #ff5c9a;
+      --lavender: #9c86ff;
+      --peach: #ffb17a;
+      --mint: #76d8c1;
+      --shadow: 0 18px 50px rgba(94, 57, 104, 0.18);
+      --radius-xl: 34px;
+      --radius-lg: 26px;
+      --radius-md: 20px;
+      --ease: cubic-bezier(.2,.9,.22,1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: "Nunito", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.55), transparent 30%),
+        radial-gradient(circle at top right, rgba(255,255,255,0.28), transparent 22%),
+        linear-gradient(140deg, var(--bg-a), var(--bg-b) 52%, var(--bg-c));
+      overflow: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: -10%;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(255,255,255,0.35) 0 12px, transparent 14px),
+        radial-gradient(circle at 78% 12%, rgba(255,255,255,0.25) 0 9px, transparent 11px),
+        radial-gradient(circle at 22% 78%, rgba(255,255,255,0.2) 0 7px, transparent 9px),
+        radial-gradient(circle at 88% 72%, rgba(255,255,255,0.18) 0 8px, transparent 10px);
+      filter: blur(2px);
+      opacity: 0.8;
+      animation: drift 18s linear infinite;
+    }
+
+    body::after {
+      animation-duration: 28s;
+      animation-direction: reverse;
+      opacity: 0.55;
+      transform: scale(1.15);
+    }
+
+    @keyframes drift {
+      0% { transform: translate3d(0, 0, 0) scale(1); }
+      50% { transform: translate3d(1.5%, -1%, 0) scale(1.03); }
+      100% { transform: translate3d(0, 0, 0) scale(1); }
+    }
+
+    #ambient-layer,
+    #celebration-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .floatie {
+      position: absolute;
+      left: var(--x);
+      bottom: -12vh;
+      font-size: var(--size);
+      opacity: var(--opacity);
+      color: var(--color);
+      filter: drop-shadow(0 10px 18px rgba(107, 64, 124, 0.14));
+      animation: floatUp var(--duration) linear forwards;
+      transform: translate3d(0, 0, 0) rotate(0deg);
+      user-select: none;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translate3d(0, 0, 0) rotate(0deg) scale(0.8);
+        opacity: 0;
+      }
+      10% {
+        opacity: var(--opacity);
+      }
+      100% {
+        transform: translate3d(var(--drift), -125vh, 0) rotate(var(--spin)) scale(1.2);
+        opacity: 0;
+      }
+    }
+
+    .confetti {
+      position: absolute;
+      top: -10vh;
+      left: var(--x);
+      width: var(--w);
+      height: var(--h);
+      border-radius: 999px;
+      background: var(--color);
+      opacity: 0.95;
+      transform: translate3d(0, 0, 0) rotate(0deg);
+      animation: confettiFall var(--duration) cubic-bezier(.15,.75,.2,1) forwards;
+      box-shadow: 0 6px 12px rgba(92, 61, 109, 0.12);
+    }
+
+    .confetti.heart {
+      width: var(--w);
+      height: var(--h);
+      background: none;
+      font-size: 1.2rem;
+      text-align: center;
+      line-height: 1;
+    }
+
+    .confetti.heart::before {
+      content: "♥";
+      color: var(--color);
+      display: block;
+      transform: translateY(0.1rem);
+    }
+
+    @keyframes confettiFall {
+      0% {
+        transform: translate3d(0, -2vh, 0) rotate(0deg);
+        opacity: 0;
+      }
+      12% { opacity: 1; }
+      100% {
+        transform: translate3d(var(--drift), 110vh, 0) rotate(var(--spin));
+        opacity: 0;
+      }
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+
+    .shell {
+      width: min(940px, 100%);
+      height: min(760px, calc(100svh - 36px));
+      max-height: calc(100svh - 36px);
+      border-radius: calc(var(--radius-xl) + 6px);
+      background: rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+    }
+
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.55), transparent 26%),
+        radial-gradient(circle at 85% 12%, rgba(255, 255, 255, 0.22), transparent 18%),
+        radial-gradient(circle at 80% 78%, rgba(255, 255, 255, 0.18), transparent 20%);
+      pointer-events: none;
+    }
+
+    .page {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: start center;
+      padding: clamp(18px, 3vw, 42px);
+      padding-bottom: clamp(28px, 5vw, 56px);
+      opacity: 0;
+      transform: translateY(24px) scale(0.985);
+      pointer-events: none;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      transition:
+        opacity 0.42s var(--ease),
+        transform 0.42s var(--ease);
+    }
+
+    .page.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .card {
+      width: min(100%, 760px);
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: clamp(24px, 4vw, 42px);
+      position: relative;
+      overflow: hidden;
+      margin-block: auto;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.48), transparent 38%),
+        linear-gradient(315deg, rgba(255,255,255,0.18), transparent 34%);
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.9rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.66);
+      color: var(--muted);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      font-size: 0.92rem;
+      box-shadow: 0 10px 24px rgba(109, 72, 124, 0.08);
+      margin-bottom: 18px;
+    }
+
+    h1, h2 {
+      font-family: "Poppins", "Nunito", system-ui, sans-serif;
+      margin: 0;
+      line-height: 1.03;
+      letter-spacing: -0.03em;
+    }
+
+    h1 {
+      font-size: clamp(2.15rem, 5vw, 4.25rem);
+      max-width: 11ch;
+    }
+
+    h2 {
+      font-size: clamp(1.85rem, 4vw, 3.1rem);
+      max-width: 14ch;
+    }
+
+    .lede {
+      margin: 18px 0 0;
+      font-size: clamp(1rem, 2.1vw, 1.18rem);
+      line-height: 1.62;
+      color: var(--muted);
+      max-width: 60ch;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      justify-content: center;
+      margin-top: 32px;
+      position: relative;
+    }
+
+    .slot {
+      position: relative;
+      width: min(100%, 224px);
+      min-height: 58px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      min-height: 58px;
+      padding: 0.95rem 1.4rem;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition:
+        transform 0.2s var(--ease),
+        box-shadow 0.2s var(--ease),
+        background 0.2s var(--ease),
+        color 0.2s var(--ease),
+        opacity 0.2s var(--ease);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:focus-visible {
+      outline: 4px solid rgba(156, 134, 255, 0.28);
+      outline-offset: 4px;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px) scale(1.01);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--pink), var(--lavender));
+      color: white;
+      box-shadow: 0 16px 28px rgba(255, 92, 154, 0.24);
+      min-width: min(224px, 100%);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 18px 34px rgba(156, 134, 255, 0.24);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.88);
+      color: var(--ink);
+      min-width: min(224px, 100%);
+      border: 1px solid rgba(255,255,255,0.72);
+      box-shadow: 0 14px 26px rgba(109, 72, 124, 0.12);
+    }
+
+    .btn-secondary.surrendered {
+      background: linear-gradient(135deg, #ffe6f1, #fff7d8);
+      color: #8d5075;
+    }
+
+    .section-stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .picker-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .field {
+      display: grid;
+      gap: 10px;
+    }
+
+    .label {
+      font-weight: 800;
+      font-size: 0.98rem;
+      color: var(--muted);
+    }
+
+    .input {
+      width: 100%;
+      min-height: 58px;
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: 20px;
+      padding: 0.9rem 1rem;
+      font: inherit;
+      color: var(--ink);
+      background: rgba(255,255,255,0.9);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    .input:focus {
+      outline: 4px solid rgba(255, 127, 179, 0.18);
+      border-color: rgba(255, 127, 179, 0.5);
+    }
+
+    .vibes {
+      display: grid;
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .vibe-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .vibe-help {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .vibe-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .vibe-card {
+      border: 1px solid rgba(255,255,255,0.8);
+      border-radius: 24px;
+      padding: 16px 14px 15px;
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 14px 26px rgba(109, 72, 124, 0.1);
+      color: var(--ink);
+      cursor: pointer;
+      min-height: 104px;
+      display: grid;
+      gap: 8px;
+      align-content: center;
+      transition:
+        transform 0.2s var(--ease),
+        box-shadow 0.2s var(--ease),
+        border-color 0.2s var(--ease),
+        background 0.2s var(--ease);
+      font: inherit;
+      text-align: left;
+    }
+
+    .vibe-card .emoji {
+      font-size: 1.7rem;
+    }
+
+    .vibe-card .title {
+      font-weight: 900;
+      font-size: 1.02rem;
+    }
+
+    .vibe-card .sub {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.35;
+    }
+
+    .vibe-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 32px rgba(109, 72, 124, 0.14);
+    }
+
+    .vibe-card.selected {
+      background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255, 248, 253, 0.94));
+      border-color: rgba(255, 127, 179, 0.55);
+      box-shadow: 0 18px 32px rgba(255, 127, 179, 0.18);
+      transform: translateY(-1px) scale(1.01);
+    }
+
+    .confirm-wrap {
+      margin-top: 28px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .btn-confirm {
+      min-width: min(100%, 260px);
+      background: linear-gradient(135deg, var(--mint), #8ee7f3);
+      color: #164c4b;
+      box-shadow: 0 18px 30px rgba(118, 216, 193, 0.25);
+    }
+
+    .btn-confirm:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .summary {
+      display: grid;
+      gap: 18px;
+      align-items: start;
+      text-align: left;
+    }
+
+    .confetti-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .summary-box {
+      margin-top: 18px;
+      display: grid;
+      gap: 12px;
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.8);
+      border: 1px solid rgba(255,255,255,0.78);
+    }
+
+    .summary-line {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .summary-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: linear-gradient(135deg, rgba(255, 127, 179, 0.12), rgba(156, 134, 255, 0.12));
+      border: 1px solid rgba(255,255,255,0.8);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 0.65rem 0.9rem;
+      font-weight: 800;
+    }
+
+    .tiny-note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .sparkle {
+      display: inline-block;
+      animation: sparkle 1.5s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    @keyframes sparkle {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.12) rotate(8deg); }
+    }
+
+    .pulse {
+      animation: pulse 1.4s var(--ease) infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        height: calc(100svh - 22px);
+        max-height: calc(100svh - 22px);
+      }
+
+      .page {
+        align-items: start;
+        padding: 16px 14px 22px;
+      }
+
+      .card {
+        width: 100%;
+        margin-block: 0;
+      }
+
+      .picker-grid,
+      .vibe-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .button-row {
+        flex-direction: column;
+      }
+
+      .slot,
+      .btn-primary,
+      .btn-secondary {
+        width: 100%;
+      }
+
+      .btn-primary,
+      .btn-secondary {
+        min-width: 0;
+      }
+
+      .confirm-wrap {
+        padding-bottom: 10px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+
+      body::before,
+      body::after {
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="ambient-layer" aria-hidden="true"></div>
+  <div id="celebration-layer" aria-hidden="true"></div>
+
+  <main class="app">
+    <div class="shell">
+      <section class="page active" id="page-ask" aria-labelledby="ask-title">
+        <div class="card">
+          <div class="badge"><span class="sparkle">✨</span> a very important question</div>
+          <div class="section-stack">
+            <div>
+              <h1 id="ask-title">Would you like to go on a date with me? 🥺</h1>
+              <p class="lede">I promise low pressure, high charm, and at least one suspiciously good snack.</p>
+            </div>
+
+            <div class="button-row" aria-label="date decision buttons">
+              <button class="btn btn-primary" id="yesButton" type="button">Yes</button>
+              <div class="slot" aria-hidden="true">
+                <button class="btn btn-secondary" id="noButton" type="button">No</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-details" aria-labelledby="details-title">
+        <div class="card">
+          <div class="badge"><span class="sparkle">💘</span> let’s make it official</div>
+          <div class="section-stack">
+            <div>
+              <h2 id="details-title">Pick the details</h2>
+              <p class="lede">You choose the timing and the vibe. I will show up with enthusiasm and excellent intentions.</p>
+            </div>
+
+            <div class="picker-grid">
+              <label class="field">
+                <span class="label">The date</span>
+                <input class="input" id="dateInput" type="date" />
+              </label>
+
+              <label class="field">
+                <span class="label">The time</span>
+                <input class="input" id="timeInput" type="time" />
+              </label>
+            </div>
+
+            <div class="vibes">
+              <div class="vibe-heading">
+                <span class="label">The vibe</span>
+                <span class="vibe-help">Pick one that sounds delightfully dangerous.</span>
+              </div>
+              <div class="vibe-grid" id="vibeGrid">
+                <button class="vibe-card" type="button" data-vibe="Pizza Night">
+                  <div class="emoji">🍕</div>
+                  <div class="title">Pizza Night</div>
+                  <div class="sub">Cheesy, cozy, and never complicated.</div>
+                </button>
+                <button class="vibe-card" type="button" data-vibe="Sushi Date">
+                  <div class="emoji">🍣</div>
+                  <div class="title">Sushi Date</div>
+                  <div class="sub">Elegant bites and elite table manners.</div>
+                </button>
+                <button class="vibe-card" type="button" data-vibe="Movie Night">
+                  <div class="emoji">🎬</div>
+                  <div class="title">Movie Night</div>
+                  <div class="sub">Popcorn, plot twists, and hand-holding potential.</div>
+                </button>
+                <button class="vibe-card" type="button" data-vibe="Cozy Café">
+                  <div class="emoji">☕</div>
+                  <div class="title">Cozy Café</div>
+                  <div class="sub">Cute drinks, good chats, soft playlist energy.</div>
+                </button>
+                <button class="vibe-card" type="button" data-vibe="Adventure Day">
+                  <div class="emoji">🎢</div>
+                  <div class="title">Adventure Day</div>
+                  <div class="sub">A little spontaneous, a little chaotic, a lot fun.</div>
+                </button>
+                <button class="vibe-card" type="button" data-vibe="Ice Cream Walk">
+                  <div class="emoji">🍦</div>
+                  <div class="title">Ice Cream Walk</div>
+                  <div class="sub">Sweet treats and a stroll with excellent vibes.</div>
+                </button>
+              </div>
+            </div>
+
+            <div class="confirm-wrap">
+              <button class="btn btn-confirm" id="confirmButton" type="button" disabled>It's a date! 💕</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-confirm" aria-labelledby="confirm-title">
+        <div class="card confetti-card">
+          <div class="badge"><span class="sparkle">🎉</span> confirmation unlocked</div>
+          <div class="summary">
+            <div>
+              <h2 id="confirm-title">It’s official!</h2>
+              <p class="lede" id="confirmMessage">See you soon for something extremely cute.</p>
+            </div>
+            <div class="summary-box">
+              <div class="summary-line"><span class="summary-pill">📅 <span id="summaryDate">—</span></span></div>
+              <div class="summary-line"><span class="summary-pill">🕒 <span id="summaryTime">—</span></span></div>
+              <div class="summary-line"><span class="summary-pill">💖 <span id="summaryVibe">—</span></span></div>
+            </div>
+            <p class="tiny-note">I am, respectfully, already excited.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      const stateKey = "cute-date-ask-state";
+      const pageOrder = ["ask", "details", "confirm"];
+      const pages = {
+        ask: document.getElementById("page-ask"),
+        details: document.getElementById("page-details"),
+        confirm: document.getElementById("page-confirm"),
+      };
+
+      const yesButton = document.getElementById("yesButton");
+      const noButton = document.getElementById("noButton");
+      const dateInput = document.getElementById("dateInput");
+      const timeInput = document.getElementById("timeInput");
+      const vibeGrid = document.getElementById("vibeGrid");
+      const confirmButton = document.getElementById("confirmButton");
+      const confirmMessage = document.getElementById("confirmMessage");
+      const summaryDate = document.getElementById("summaryDate");
+      const summaryTime = document.getElementById("summaryTime");
+      const summaryVibe = document.getElementById("summaryVibe");
+      const ambientLayer = document.getElementById("ambient-layer");
+      const celebrationLayer = document.getElementById("celebration-layer");
+
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const state = loadState();
+      let currentPage = "ask";
+      let noLimit = state.noLimit ?? randomInt(3, 5);
+      let noAttempts = state.noAttempts ?? 0;
+      let noIsSurrendered = state.noIsSurrendered ?? false;
+      let noFixed = false;
+
+      state.noLimit = noLimit;
+      hydrateInputs();
+      hydrateVibes();
+      showPage(resolvePageFromHashOrState(), { replaceHash: true, animateCelebration: false });
+      startAmbientFloaties();
+      window.setInterval(refreshDateTimeBounds, 30_000);
+
+      if (!prefersReducedMotion) {
+        window.setInterval(() => {
+          if (Math.random() < 0.75) {
+            spawnAmbientFloatie();
+          }
+        }, 1500);
+      }
+
+      yesButton.addEventListener("click", () => {
+        goTo("details");
+      });
+
+      noButton.addEventListener("mouseenter", () => handleNoAttempt("mouse"));
+      noButton.addEventListener("pointerdown", (event) => {
+        if (noIsSurrendered) {
+          return;
+        }
+        if (event.pointerType === "touch" || event.pointerType === "pen") {
+          event.preventDefault();
+        }
+        handleNoAttempt(event.pointerType || "pointer");
+      });
+      noButton.addEventListener("click", (event) => {
+        if (!noIsSurrendered) {
+          event.preventDefault();
+          handleNoAttempt("click");
+        } else {
+          goTo("details");
+        }
+      });
+
+      dateInput.addEventListener("change", () => {
+        state.date = dateInput.value;
+        if (dateInput.value && !isSelectableDate(dateInput.value)) {
+          dateInput.value = todayDateString();
+          state.date = dateInput.value;
+        }
+        refreshDateTimeBounds();
+        persistState();
+        updateConfirmButton();
+      });
+
+      timeInput.addEventListener("change", () => {
+        state.time = timeInput.value;
+        if (!isValidTimeSelection()) {
+          timeInput.value = "";
+          state.time = "";
+        }
+        persistState();
+        updateConfirmButton();
+      });
+
+      vibeGrid.addEventListener("click", (event) => {
+        const card = event.target.closest(".vibe-card");
+        if (!card) {
+          return;
+        }
+        selectVibe(card.dataset.vibe);
+      });
+
+      confirmButton.addEventListener("click", () => {
+        if (confirmButton.disabled) {
+          return;
+        }
+        goTo("confirm");
+      });
+
+      window.addEventListener("hashchange", () => {
+        const page = normalizePage(location.hash.replace("#", ""));
+        if (page) {
+          showPage(page, { replaceHash: false, animateCelebration: page === "confirm" });
+        }
+      });
+
+      function loadState() {
+        try {
+          return JSON.parse(sessionStorage.getItem(stateKey) || "{}") || {};
+        } catch {
+          return {};
+        }
+      }
+
+      function persistState() {
+        try {
+          sessionStorage.setItem(stateKey, JSON.stringify(state));
+        } catch {
+          // Storage is a convenience; the experience still works without it.
+        }
+      }
+
+      function hydrateInputs() {
+        dateInput.min = todayDateString();
+        if (state.date) {
+          dateInput.value = state.date;
+        }
+        if (state.time) {
+          timeInput.value = state.time;
+        }
+        syncTimeBounds();
+        if (dateInput.value && !isSelectableDate(dateInput.value)) {
+          dateInput.value = todayDateString();
+          state.date = dateInput.value;
+        }
+        if (timeInput.value && !isValidTimeSelection()) {
+          timeInput.value = "";
+          state.time = "";
+        }
+        updateConfirmButton();
+      }
+
+      function hydrateVibes() {
+        const cards = [...vibeGrid.querySelectorAll(".vibe-card")];
+        cards.forEach((card) => {
+          const selected = card.dataset.vibe === state.vibe;
+          card.classList.toggle("selected", selected);
+          card.setAttribute("aria-pressed", selected ? "true" : "false");
+        });
+      }
+
+      function updateConfirmButton() {
+        syncTimeBounds();
+        const hasDate = Boolean(dateInput.value) && isSelectableDate(dateInput.value);
+        const hasTime = Boolean(timeInput.value) && isValidTimeSelection();
+        const hasVibe = Boolean(state.vibe);
+        confirmButton.disabled = !(hasDate && hasTime && hasVibe);
+      }
+
+      function selectVibe(vibe) {
+        state.vibe = vibe;
+        hydrateVibes();
+        persistState();
+        updateConfirmButton();
+      }
+
+      function resolvePageFromHashOrState() {
+        const hashPage = normalizePage(location.hash.replace("#", ""));
+        if (hashPage) {
+          return hashPage;
+        }
+        if (state.vibe && state.date && state.time && state.confirmed) {
+          return "confirm";
+        }
+        if (state.vibe || state.date || state.time) {
+          return "details";
+        }
+        if (state.noIsSurrendered) {
+          return "details";
+        }
+        return "ask";
+      }
+
+      function normalizePage(value) {
+        return pageOrder.includes(value) ? value : null;
+      }
+
+      function goTo(page) {
+        showPage(page, { replaceHash: true, animateCelebration: page === "confirm" });
+      }
+
+      function showPage(page, { replaceHash = true, animateCelebration = false } = {}) {
+        const nextPage = normalizePage(page) || "ask";
+        currentPage = nextPage;
+        Object.entries(pages).forEach(([name, section]) => {
+          section.classList.toggle("active", name === nextPage);
+        });
+
+        if (replaceHash && location.hash !== `#${nextPage}`) {
+          history.replaceState(null, "", `#${nextPage}`);
+        }
+
+        if (nextPage === "details") {
+          window.setTimeout(() => dateInput.focus(), 120);
+        }
+
+        if (nextPage === "confirm") {
+          state.confirmed = true;
+          persistState();
+          renderSummary();
+          if (animateCelebration) {
+            launchCelebration();
+          }
+        }
+      }
+
+      function renderSummary() {
+        const formattedDate = formatDate(state.date);
+        const formattedTime = formatTime(state.time);
+        const vibe = state.vibe || "a very cute mystery";
+
+        summaryDate.textContent = formattedDate;
+        summaryTime.textContent = formattedTime;
+        summaryVibe.textContent = vibe;
+        confirmMessage.textContent = `It's official! See you on ${formattedDate} at ${formattedTime} for ${vibe}! I'm already excited 🎉💕`;
+      }
+
+      function formatDate(value) {
+        if (!value) {
+          return "your chosen day";
+        }
+        const parsed = new Date(`${value}T12:00:00`);
+        if (Number.isNaN(parsed.getTime())) {
+          return value;
+        }
+        return new Intl.DateTimeFormat(undefined, {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }).format(parsed);
+      }
+
+      function formatTime(value) {
+        if (!value) {
+          return "your chosen time";
+        }
+        const [hour, minute] = value.split(":").map(Number);
+        const date = new Date();
+        date.setHours(hour, minute, 0, 0);
+        return new Intl.DateTimeFormat(undefined, {
+          hour: "numeric",
+          minute: "2-digit",
+        }).format(date);
+      }
+
+      function handleNoAttempt(source) {
+        if (currentPage !== "ask" || noIsSurrendered) {
+          return;
+        }
+
+        noAttempts += 1;
+        state.noAttempts = noAttempts;
+        persistState();
+        escapeNoButton(source);
+
+        if (noAttempts >= noLimit) {
+          surrenderNoButton();
+        }
+      }
+
+      function escapeNoButton(source) {
+        if (noFixed) {
+          noButton.style.transition = "top 260ms var(--ease), left 260ms var(--ease), transform 260ms var(--ease)";
+        } else {
+          noButton.style.position = "fixed";
+          noButton.style.zIndex = "20";
+          noButton.style.margin = "0";
+          noButton.style.width = `${noButton.offsetWidth}px`;
+          noButton.style.height = `${noButton.offsetHeight}px`;
+          noButton.style.transition = "top 260ms var(--ease), left 260ms var(--ease), transform 260ms var(--ease)";
+          noFixed = true;
+        }
+
+        const rect = noButton.getBoundingClientRect();
+        const margin = 18;
+        const maxX = Math.max(margin, window.innerWidth - rect.width - margin);
+        const maxY = Math.max(margin, window.innerHeight - rect.height - margin);
+
+        let x = randomBetween(margin, maxX);
+        let y = randomBetween(margin, maxY);
+
+        if (typeof source === "string" && source.includes("mouse")) {
+          const pointer = lastPointer();
+          if (pointer) {
+            const distanceX = x - pointer.x;
+            const distanceY = y - pointer.y;
+            if (Math.abs(distanceX) < 140 && Math.abs(distanceY) < 100) {
+              x = clamp(pointer.x + (distanceX >= 0 ? 220 : -220), margin, maxX);
+              y = clamp(pointer.y + (distanceY >= 0 ? 160 : -160), margin, maxY);
+            }
+          }
+        }
+
+        noButton.style.left = `${x}px`;
+        noButton.style.top = `${y}px`;
+        noButton.style.transform = `translate(-50%, -50%) rotate(${randomBetween(-10, 10)}deg)`;
+      }
+
+      function surrenderNoButton() {
+        if (noIsSurrendered) {
+          return;
+        }
+        noIsSurrendered = true;
+        state.noIsSurrendered = true;
+        persistState();
+
+        noButton.textContent = "Okay fine... Yes 😮‍💨";
+        noButton.classList.add("surrendered", "pulse");
+        noButton.style.position = "";
+        noButton.style.left = "";
+        noButton.style.top = "";
+        noButton.style.transform = "";
+        noButton.style.width = "";
+        noButton.style.height = "";
+        noButton.style.zIndex = "";
+        noButton.style.margin = "";
+        noButton.style.transition = "";
+        noFixed = false;
+      }
+
+      function lastPointer() {
+        return state.pointer || null;
+      }
+
+      document.addEventListener("pointermove", (event) => {
+        state.pointer = { x: event.clientX, y: event.clientY };
+      }, { passive: true });
+
+      function randomBetween(min, max) {
+        return Math.round(min + Math.random() * (max - min));
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function randomInt(min, max) {
+        return Math.floor(min + Math.random() * (max - min + 1));
+      }
+
+      function todayDateString() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
+      function currentTimeString() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        return `${hours}:${minutes}`;
+      }
+
+      function syncTimeBounds() {
+        if (dateInput.value === todayDateString()) {
+          timeInput.min = currentTimeString();
+        } else {
+          timeInput.min = "";
+        }
+      }
+
+      function refreshDateTimeBounds() {
+        syncTimeBounds();
+        if (dateInput.value === todayDateString() && timeInput.value && timeInput.value < currentTimeString()) {
+          timeInput.value = "";
+          state.time = "";
+        }
+        if (dateInput.value && !isSelectableDate(dateInput.value)) {
+          dateInput.value = todayDateString();
+          state.date = dateInput.value;
+        }
+        updateConfirmButton();
+      }
+
+      function isSelectableDate(value) {
+        return Boolean(value) && value >= todayDateString();
+      }
+
+      function isValidTimeSelection() {
+        if (!timeInput.value) {
+          return false;
+        }
+        if (dateInput.value === todayDateString()) {
+          return timeInput.value >= currentTimeString();
+        }
+        return isSelectableDate(dateInput.value);
+      }
+
+      function startAmbientFloaties() {
+        if (prefersReducedMotion) {
+          return;
+        }
+        for (let i = 0; i < 10; i += 1) {
+          window.setTimeout(spawnAmbientFloatie, i * 180);
+        }
+      }
+
+      function spawnAmbientFloatie() {
+        if (prefersReducedMotion) {
+          return;
+        }
+
+        const symbols = ["♡", "♥", "✦", "✧"];
+        const element = document.createElement("span");
+        element.className = "floatie";
+        element.textContent = symbols[randomInt(0, symbols.length - 1)];
+        element.style.setProperty("--x", `${randomInt(2, 98)}vw`);
+        element.style.setProperty("--size", `${randomBetween(14, 30)}px`);
+        element.style.setProperty("--opacity", (Math.random() * 0.35 + 0.2).toFixed(2));
+        element.style.setProperty("--duration", `${randomBetween(10, 18)}s`);
+        element.style.setProperty("--drift", `${randomBetween(-60, 60)}px`);
+        element.style.setProperty("--spin", `${randomBetween(-140, 140)}deg`);
+        element.style.setProperty("--color", pickAmbientColor());
+        ambientLayer.appendChild(element);
+        element.addEventListener("animationend", () => element.remove(), { once: true });
+      }
+
+      function pickAmbientColor() {
+        const palette = ["#ff7fb3", "#9c86ff", "#ffb17a", "#76d8c1", "#ffcadb"];
+        return palette[randomInt(0, palette.length - 1)];
+      }
+
+      function launchCelebration() {
+        if (prefersReducedMotion) {
+          return;
+        }
+
+        celebrationLayer.replaceChildren();
+        const totalPieces = 42;
+        for (let i = 0; i < totalPieces; i += 1) {
+          const piece = document.createElement("span");
+          const isHeart = i % 5 === 0;
+          piece.className = `confetti${isHeart ? " heart" : ""}`;
+          piece.style.setProperty("--x", `${randomBetween(2, 98)}vw`);
+          piece.style.setProperty("--w", `${randomBetween(8, 15)}px`);
+          piece.style.setProperty("--h", `${randomBetween(10, 18)}px`);
+          piece.style.setProperty("--duration", `${randomBetween(2200, 4200)}ms`);
+          piece.style.setProperty("--drift", `${randomBetween(-180, 180)}px`);
+          piece.style.setProperty("--spin", `${randomBetween(-780, 780)}deg`);
+          piece.style.setProperty("--color", pickAmbientColor());
+          piece.style.animationDelay = `${randomBetween(0, 420)}ms`;
+          celebrationLayer.appendChild(piece);
+          window.setTimeout(() => piece.remove(), 5200);
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
