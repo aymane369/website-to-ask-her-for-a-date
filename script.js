@@ -1034,26 +1034,42 @@
     bgMusic.muted = muted;
   }
 
-  function attemptPlayMusic() {
+  function attemptPlayMusic(onResult) {
     const playPromise = bgMusic.play();
-    if (playPromise && typeof playPromise.catch === "function") {
-      playPromise.catch(() => {});
+    if (playPromise && typeof playPromise.then === "function") {
+      playPromise.then(() => onResult && onResult(true)).catch(() => onResult && onResult(false));
     }
   }
 
   function initMusic() {
     applyMusicVolume();
-    // most browsers block audio until the visitor interacts with the
-    // page at least once — try now, then unlock on the first interaction.
-    attemptPlayMusic();
+    // Most browsers block audio until the visitor interacts with the page
+    // at least once — try now (this alone is enough on some desktop
+    // browsers), then keep retrying on interaction until it actually
+    // succeeds. A single-shot "try once on first tap, then stop listening"
+    // approach fails silently on phones: a slower connection or a stricter
+    // gesture check can make that very first attempt reject (e.g. the
+    // ~7MB file hasn't buffered enough yet), and with nothing left
+    // listening afterwards the music never gets a second chance — which
+    // is exactly why this worked on desktop (fast load, first try lands)
+    // but not on phones.
+    let unlocked = false;
+    attemptPlayMusic((ok) => { unlocked = ok; });
+
     const unlock = () => {
-      attemptPlayMusic();
-      document.removeEventListener("pointerdown", unlock);
-      document.removeEventListener("keydown", unlock);
-      document.removeEventListener("touchstart", unlock);
+      if (unlocked) return;
+      attemptPlayMusic((ok) => {
+        if (!ok) return;
+        unlocked = true;
+        document.removeEventListener("pointerdown", unlock);
+        document.removeEventListener("touchstart", unlock);
+        document.removeEventListener("keydown", unlock);
+        document.removeEventListener("click", unlock);
+      });
     };
-    document.addEventListener("pointerdown", unlock, { once: true });
-    document.addEventListener("keydown", unlock, { once: true });
-    document.addEventListener("touchstart", unlock, { once: true });
+    document.addEventListener("pointerdown", unlock);
+    document.addEventListener("touchstart", unlock);
+    document.addEventListener("keydown", unlock);
+    document.addEventListener("click", unlock);
   }
 })();
