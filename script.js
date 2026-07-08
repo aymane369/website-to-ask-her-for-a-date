@@ -511,6 +511,10 @@
       section.classList.toggle("active", name === nextPage);
     });
 
+    if (nextPage !== "ask") {
+      parkNoButton();
+    }
+
     if (replaceHash && location.hash !== `#${nextPage}`) {
       history.replaceState(null, "", `#${nextPage}`);
     }
@@ -659,9 +663,17 @@
 
     noButton.textContent = "Okay fine... Yes 😮‍💨";
     noButton.classList.add("surrendered", "pulse");
-    if (noFixed) {
-      noButtonHome.appendChild(noButton);
-    }
+    parkNoButton();
+  }
+
+  // undoes the position:fixed "escape" (reparented to <body> so it can
+  // dodge the cursor freely) and puts the button back in its normal
+  // flow slot. Needed whenever we navigate away from the ask page too —
+  // otherwise a mid-dodge button stays stuck on top of later pages,
+  // since it no longer lives inside #page-ask once it has escaped.
+  function parkNoButton() {
+    if (!noFixed) return;
+    noButtonHome.appendChild(noButton);
     noButton.style.position = "";
     noButton.style.left = "";
     noButton.style.top = "";
