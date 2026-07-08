@@ -32,6 +32,10 @@
   const eggBanner = document.getElementById("eggBanner");
   const tickerTrack = document.getElementById("tickerTrack");
   const soundToggle = document.getElementById("soundToggle");
+  const soundPanel = document.getElementById("soundPanel");
+  const volumeSlider = document.getElementById("volumeSlider");
+  const volumeValue = document.getElementById("volumeValue");
+  const muteButton = document.getElementById("muteButton");
   const themeToggle = document.getElementById("themeToggle");
   const calendarButton = document.getElementById("calendarButton");
   const downloadButton = document.getElementById("downloadButton");
@@ -75,6 +79,29 @@
     { face: "🥳", label: "Already picking outfits" },
   ];
 
+  // an original little music-box loop, synthesized so the site stays
+  // a plain static page with no audio file to host or license.
+  const musicMelody = [
+    { f: 523.25, d: 0.32 }, // C5
+    { f: 587.33, d: 0.32 }, // D5
+    { f: 659.25, d: 0.32 }, // E5
+    { f: 587.33, d: 0.32 }, // D5
+    { f: 523.25, d: 0.32 }, // C5
+    { f: 493.88, d: 0.32 }, // B4
+    { f: 440.00, d: 0.64 }, // A4
+    { f: 493.88, d: 0.32 }, // B4
+    { f: 523.25, d: 0.64 }, // C5
+    { f: 659.25, d: 0.32 }, // E5
+    { f: 587.33, d: 0.32 }, // D5
+    { f: 523.25, d: 0.64 }, // C5
+  ];
+
+  const musicBassNotes = [
+    261.63, null, null, null,
+    220.00, null, null, null,
+    196.00, null, null, null,
+  ];
+
   const state = loadState();
   let currentPage = "ask";
   let noLimit = state.noLimit ?? randomInt(5, 8);
@@ -85,7 +112,14 @@
   let isDodging = false;
   let countdownTimer = null;
   let muted = localStorage.getItem("date-ask-muted") === "1";
+  const storedVolume = localStorage.getItem("date-ask-volume");
+  let masterVolume = storedVolume === null ? 35 : clampVolume(Number(storedVolume));
   let audioCtx = null;
+  let masterGain = null;
+  let musicStarted = false;
+  let musicNoteIndex = 0;
+  let musicNextNoteTime = 0;
+  let musicSchedulerId = null;
 
   state.noLimit = noLimit;
   if (!state.date) {
@@ -97,6 +131,7 @@
 
   initTheme();
   initSound();
+  initMusic();
   buildTicker();
   hydrateInputs();
   hydrateVibes();
@@ -201,10 +236,45 @@
     shareTheNews();
   });
 
-  soundToggle.addEventListener("click", () => {
+  soundToggle.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (soundPanel.classList.contains("open")) {
+      closeSoundPanel();
+    } else {
+      openSoundPanel();
+    }
+  });
+
+  soundPanel.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  document.addEventListener("click", () => {
+    closeSoundPanel();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeSoundPanel();
+  });
+
+  volumeSlider.addEventListener("input", () => {
+    masterVolume = clampVolume(Number(volumeSlider.value));
+    localStorage.setItem("date-ask-volume", String(masterVolume));
+    if (masterVolume > 0 && muted) {
+      muted = false;
+      localStorage.setItem("date-ask-muted", "0");
+      updateMuteButton();
+    }
+    updateSoundIcon();
+    applyVolumeToGraph();
+  });
+
+  muteButton.addEventListener("click", () => {
     muted = !muted;
     localStorage.setItem("date-ask-muted", muted ? "1" : "0");
+    updateMuteButton();
     updateSoundIcon();
+    applyVolumeToGraph();
     if (!muted) playTone(560, 0.08, "sine", 0.08);
   });
 
@@ -273,11 +343,50 @@
   }
 
   function initSound() {
+    volumeSlider.value = String(masterVolume);
     updateSoundIcon();
+    updateMuteButton();
+  }
+
+  function clampVolume(value) {
+    if (!Number.isFinite(value)) return 35;
+    return Math.min(100, Math.max(0, Math.round(value)));
+  }
+
+  function currentVolumeLevel() {
+    return muted ? 0 : masterVolume / 100;
   }
 
   function updateSoundIcon() {
-    soundToggle.textContent = muted ? "🔇" : "🔊";
+    volumeValue.textContent = `${masterVolume}%`;
+    if (muted || masterVolume === 0) {
+      soundToggle.textContent = "🔇";
+    } else if (masterVolume < 50) {
+      soundToggle.textContent = "🔉";
+    } else {
+      soundToggle.textContent = "🔊";
+    }
+  }
+
+  function updateMuteButton() {
+    muteButton.textContent = muted ? "Unmute" : "Mute";
+    muteButton.classList.toggle("is-muted", muted);
+  }
+
+  function applyVolumeToGraph() {
+    if (masterGain && audioCtx) {
+      masterGain.gain.setTargetAtTime(currentVolumeLevel(), audioCtx.currentTime, 0.05);
+    }
+  }
+
+  function openSoundPanel() {
+    soundPanel.classList.add("open");
+    soundToggle.setAttribute("aria-expanded", "true");
+  }
+
+  function closeSoundPanel() {
+    soundPanel.classList.remove("open");
+    soundToggle.setAttribute("aria-expanded", "false");
   }
 
   // ---------- ticker ----------
@@ -836,6 +945,9 @@
     if (!audioCtx) {
       const Ctx = window.AudioContext || window.webkitAudioContext;
       audioCtx = new Ctx();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = currentVolumeLevel();
+      masterGain.connect(audioCtx.destination);
     }
     if (audioCtx.state === "suspended") {
       audioCtx.resume();
@@ -854,7 +966,7 @@
       const now = ctx.currentTime;
       gain.gain.setValueAtTime(vol, now);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-      osc.connect(gain).connect(ctx.destination);
+      osc.connect(gain).connect(masterGain);
       osc.start(now);
       osc.stop(now + duration + 0.02);
     } catch {}
@@ -864,5 +976,57 @@
     playTone(660, 0.14, "sine", 0.12);
     window.setTimeout(() => playTone(880, 0.16, "sine", 0.12), 120);
     window.setTimeout(() => playTone(990, 0.22, "sine", 0.12), 260);
+  }
+
+  // ---------- background music ----------
+  function scheduleMusicNote(freq, time, duration, peak) {
+    const osc = audioCtx.createOscillator();
+    const noteGain = audioCtx.createGain();
+    osc.type = "triangle";
+    osc.frequency.value = freq;
+    noteGain.gain.setValueAtTime(0.0001, time);
+    noteGain.gain.exponentialRampToValueAtTime(peak, time + 0.04);
+    noteGain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+    osc.connect(noteGain).connect(masterGain);
+    osc.start(time);
+    osc.stop(time + duration + 0.05);
+  }
+
+  function musicSchedulerTick() {
+    while (musicNextNoteTime < audioCtx.currentTime + 0.2) {
+      const note = musicMelody[musicNoteIndex % musicMelody.length];
+      scheduleMusicNote(note.f, musicNextNoteTime, note.d * 0.9, 0.1);
+      const bass = musicBassNotes[musicNoteIndex % musicBassNotes.length];
+      if (bass) {
+        scheduleMusicNote(bass, musicNextNoteTime, note.d * 1.6, 0.05);
+      }
+      musicNextNoteTime += note.d;
+      musicNoteIndex += 1;
+    }
+  }
+
+  function startMusic() {
+    if (musicStarted) return;
+    musicStarted = true;
+    ensureAudioContext();
+    musicNextNoteTime = audioCtx.currentTime + 0.1;
+    musicSchedulerTick();
+    musicSchedulerId = window.setInterval(musicSchedulerTick, 120);
+  }
+
+  function initMusic() {
+    // most browsers block audio until the visitor interacts with the
+    // page at least once — start the scheduler now (silent until that
+    // first tap/click/key) and unlock it on the very first interaction.
+    startMusic();
+    const unlock = () => {
+      ensureAudioContext();
+      document.removeEventListener("pointerdown", unlock);
+      document.removeEventListener("keydown", unlock);
+      document.removeEventListener("touchstart", unlock);
+    };
+    document.addEventListener("pointerdown", unlock, { once: true });
+    document.addEventListener("keydown", unlock, { once: true });
+    document.addEventListener("touchstart", unlock, { once: true });
   }
 })();

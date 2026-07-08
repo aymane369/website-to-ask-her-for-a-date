@@ -18,7 +18,19 @@
   <div class="egg-banner" id="eggBanner">🥚 Secret mode unlocked!</div>
 
   <div class="controls">
-    <button class="icon-btn" id="soundToggle" type="button" aria-label="Toggle sound" title="Toggle sound">🔊</button>
+    <div class="sound-control">
+      <button class="icon-btn" id="soundToggle" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="soundPanel" aria-label="Music and sound settings" title="Music and sound settings">🔊</button>
+      <div class="sound-panel" id="soundPanel" role="menu">
+        <div class="sound-panel-row">
+          <div class="sound-panel-label">
+            <span class="label">Music volume</span>
+            <span class="label" id="volumeValue">35%</span>
+          </div>
+          <input type="range" class="meter-slider" id="volumeSlider" min="0" max="100" step="1" value="35" aria-label="Music volume" />
+        </div>
+        <button class="btn btn-sm btn-secondary" id="muteButton" type="button">Mute</button>
+      </div>
+    </div>
     <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
   </div>
 
