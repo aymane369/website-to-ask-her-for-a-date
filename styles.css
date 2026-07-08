@@ -688,7 +688,7 @@ h2 {
   border: var(--border-w) solid var(--ink);
   background: var(--paper);
   box-shadow: 4px 4px 0 0 var(--ink);
-  aspect-ratio: 2 / 1;
+  aspect-ratio: 4378.13 / 2434.94;
   overflow: hidden;
 }
 
@@ -698,10 +698,27 @@ h2 {
   display: block;
 }
 
+.world-map-svg svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .continent {
   fill: var(--panel);
   stroke: var(--ink);
-  stroke-width: 3;
+  stroke-width: 9;
+}
+
+.map-credit {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.map-credit a {
+  color: var(--muted);
 }
 
 .place-pins {

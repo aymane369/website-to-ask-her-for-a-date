@@ -282,6 +282,7 @@
   const timePickerDone = document.getElementById("timePickerDone");
   const vibeGrid = document.getElementById("vibeGrid");
   const placePins = document.getElementById("placePins");
+  const worldMapSvg = document.getElementById("worldMapSvg");
   const meterSlider = document.getElementById("meterSlider");
   const meterFace = document.getElementById("meterFace");
   const meterLabel = document.getElementById("meterLabel");
@@ -348,6 +349,7 @@
   hydrateInputs();
   hydrateVibes();
   hydratePlaces();
+  loadWorldMap();
   applyLocale();
   showPage(resolvePageFromHashOrState(), { replaceHash: true, animateCelebration: false });
   startAmbientShapes();
@@ -765,6 +767,19 @@
       pin.classList.toggle("selected", selected);
       pin.setAttribute("aria-pressed", selected ? "true" : "false");
     });
+  }
+
+  // fetched (not inlined in index.html) so the ~380KB path data doesn't
+  // bloat the main document — injecting the markup into a real DOM node
+  // (rather than an <img>) is what lets styles.css theme it via the
+  // .continent class and currentColor/var(--panel) below.
+  function loadWorldMap() {
+    fetch("world-map.svg")
+      .then((response) => (response.ok ? response.text() : Promise.reject(new Error("map fetch failed"))))
+      .then((svgMarkup) => {
+        worldMapSvg.innerHTML = svgMarkup;
+      })
+      .catch(() => {});
   }
 
   function hydrateMeter() {
