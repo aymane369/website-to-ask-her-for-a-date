@@ -5,37 +5,172 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Will You Go Out With Me?</title>
   <meta name="description" content="A very important, very interactive question." />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Would you like to go on a date with me? 💕" />
+  <meta property="og:description" content="A very important, very interactive question. Tap to find out." />
+  <meta property="og:image" content="og-image.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Would you like to go on a date with me? 💕" />
+  <meta name="twitter:description" content="A very important, very interactive question. Tap to find out." />
+  <meta name="twitter:image" content="og-image.svg" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23ff3d81'/%3E%3Cpath d='M12 21s-7.5-4.6-10-9.3C.5 8 1.8 4 5.6 4c2 0 3.6 1.1 4.4 2.7C10.8 5.1 12.4 4 14.4 4c3.8 0 5.1 4 4.6 7.7C19.5 16.4 12 21 12 21z' fill='white'/%3E%3C/svg%3E" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- ============ hand-rolled icon sprite (no icon library/dependency) ============ -->
+  <svg aria-hidden="true" style="position:absolute; width:0; height:0; overflow:hidden;">
+    <defs>
+      <symbol id="icon-sun" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="5" fill="currentColor" />
+        <g stroke="currentColor" stroke-width="2" stroke-linecap="square">
+          <line x1="12" y1="1" x2="12" y2="4" />
+          <line x1="12" y1="20" x2="12" y2="23" />
+          <line x1="1" y1="12" x2="4" y2="12" />
+          <line x1="20" y1="12" x2="23" y2="12" />
+          <line x1="4.2" y1="4.2" x2="6.3" y2="6.3" />
+          <line x1="17.7" y1="17.7" x2="19.8" y2="19.8" />
+          <line x1="4.2" y1="19.8" x2="6.3" y2="17.7" />
+          <line x1="17.7" y1="6.3" x2="19.8" y2="4.2" />
+        </g>
+      </symbol>
+      <symbol id="icon-moon" viewBox="0 0 24 24">
+        <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" fill="currentColor" />
+      </symbol>
+      <symbol id="icon-speaker-mute" viewBox="0 0 24 24">
+        <path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor" />
+        <g stroke="currentColor" stroke-width="2" stroke-linecap="square">
+          <line x1="16" y1="9" x2="21.5" y2="15" />
+          <line x1="21.5" y1="9" x2="16" y2="15" />
+        </g>
+      </symbol>
+      <symbol id="icon-speaker-low" viewBox="0 0 24 24">
+        <path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor" />
+        <path d="M15.5 9a4.2 4.2 0 0 1 0 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </symbol>
+      <symbol id="icon-speaker-high" viewBox="0 0 24 24">
+        <path d="M3 9h4l5-4v14l-5-4H3z" fill="currentColor" />
+        <path d="M15.2 8a5.2 5.2 0 0 1 0 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <path d="M18.3 5a9.3 9.3 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </symbol>
+      <symbol id="icon-clock" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
+        <g stroke="currentColor" stroke-width="2" stroke-linecap="square">
+          <line x1="12" y1="12" x2="12" y2="6.8" />
+          <line x1="12" y1="12" x2="16" y2="14.2" />
+        </g>
+      </symbol>
+      <symbol id="icon-calendar" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="16" fill="none" stroke="currentColor" stroke-width="2" />
+        <g stroke="currentColor" stroke-width="2" stroke-linecap="square">
+          <line x1="7" y1="2" x2="7" y2="7" />
+          <line x1="17" y1="2" x2="17" y2="7" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </g>
+        <rect x="7" y="13" width="3.4" height="3.4" fill="currentColor" />
+        <rect x="13.6" y="13" width="3.4" height="3.4" fill="currentColor" />
+      </symbol>
+      <symbol id="icon-heart" viewBox="0 0 24 24">
+        <path d="M12 21s-7.5-4.6-10-9.3C.5 8 1.8 4 5.6 4c2 0 3.6 1.1 4.4 2.7C10.8 5.1 12.4 4 14.4 4c3.8 0 5.1 4 4.6 7.7C19.5 16.4 12 21 12 21z" fill="currentColor" />
+      </symbol>
+      <symbol id="icon-flame" viewBox="0 0 24 24">
+        <path d="M12 2c1.4 3-2.4 4.2-2.4 8.2a2.6 2.6 0 0 0 5.2 0c0-.8-.6-1.6-.6-1.6 1.4 1.6 2.8 3.2 2.8 5.8a5 5 0 0 1-10 0c0-4.6 2.2-5.6 3.2-8.6.4-1.1.9-2.5 1.8-3.8z" fill="currentColor" />
+      </symbol>
+      <symbol id="icon-sparkle" viewBox="0 0 24 24">
+        <path d="M12 2l2.1 6.9L21 11l-6.9 2.1L12 20l-2.1-6.9L3 11l6.9-2.1z" fill="currentColor" />
+      </symbol>
+      <symbol id="icon-party" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="2.1" fill="currentColor" />
+        <g stroke="currentColor" stroke-width="2" stroke-linecap="square">
+          <line x1="12" y1="12" x2="12" y2="3" />
+          <line x1="12" y1="12" x2="19" y2="7" />
+          <line x1="12" y1="12" x2="21" y2="13" />
+          <line x1="12" y1="12" x2="17" y2="20" />
+          <line x1="12" y1="12" x2="7" y2="20" />
+          <line x1="12" y1="12" x2="3" y2="13" />
+          <line x1="12" y1="12" x2="5" y2="7" />
+        </g>
+      </symbol>
+      <symbol id="icon-pin" viewBox="0 0 24 24">
+        <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z" fill="currentColor" />
+        <circle cx="12" cy="9" r="2.6" fill="var(--panel)" />
+      </symbol>
+      <symbol id="icon-pizza" viewBox="0 0 24 24">
+        <polygon points="12,3 21,20 3,20" fill="currentColor" />
+        <circle cx="12" cy="13" r="1.3" fill="var(--panel)" />
+        <circle cx="9" cy="17" r="1.3" fill="var(--panel)" />
+        <circle cx="15" cy="17" r="1.3" fill="var(--panel)" />
+      </symbol>
+      <symbol id="icon-sushi" viewBox="0 0 24 24">
+        <rect x="3.5" y="13" width="17" height="7" rx="1" fill="currentColor" />
+        <rect x="3.5" y="7.5" width="17" height="7" rx="4" fill="currentColor" />
+        <rect x="3.5" y="13" width="17" height="2.4" fill="var(--panel)" />
+      </symbol>
+      <symbol id="icon-film" viewBox="0 0 24 24">
+        <rect x="2" y="4" width="20" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2" />
+        <g fill="currentColor">
+          <rect x="4" y="6" width="2.2" height="2.2" />
+          <rect x="4" y="10.9" width="2.2" height="2.2" />
+          <rect x="4" y="15.8" width="2.2" height="2.2" />
+          <rect x="17.8" y="6" width="2.2" height="2.2" />
+          <rect x="17.8" y="10.9" width="2.2" height="2.2" />
+          <rect x="17.8" y="15.8" width="2.2" height="2.2" />
+        </g>
+      </symbol>
+      <symbol id="icon-coffee" viewBox="0 0 24 24">
+        <path d="M4 8h13v9a3 3 0 0 1-3 3H8a4 4 0 0 1-4-4z" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="M17 10.5a3 3 0 0 1 0 6" fill="none" stroke="currentColor" stroke-width="2" />
+        <g stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none">
+          <path d="M8 5.2c0-1 1-1 1-2" />
+          <path d="M12 5.2c0-1 1-1 1-2" />
+        </g>
+      </symbol>
+      <symbol id="icon-mountain" viewBox="0 0 24 24">
+        <circle cx="18.5" cy="6" r="2" fill="currentColor" />
+        <polygon points="3,20 9,8 13,14.5 15,11.5 21,20" fill="currentColor" />
+      </symbol>
+      <symbol id="icon-ice-cream" viewBox="0 0 24 24">
+        <circle cx="12" cy="9" r="5.2" fill="currentColor" />
+        <polygon points="8.7,12.5 15.3,12.5 12,21" fill="currentColor" />
+      </symbol>
+    </defs>
+  </svg>
+
   <div id="ambient-layer" aria-hidden="true"></div>
   <div id="celebration-layer" aria-hidden="true"></div>
   <div id="egg-layer" aria-hidden="true"></div>
 
-  <div class="egg-banner" id="eggBanner">🥚 Secret mode unlocked!</div>
+  <div class="egg-banner" id="eggBanner" data-i18n="eggBannerText">🥚 Secret mode unlocked!</div>
 
   <audio id="bgMusic" loop preload="auto">
     <source src="audio.mp3" type="audio/mpeg" />
   </audio>
 
   <div class="controls">
+    <button class="icon-btn lang-toggle" id="langToggle" type="button" data-i18n-label="langAria" aria-label="Switch language" title="Switch language">FR</button>
     <div class="sound-control">
-      <button class="icon-btn" id="soundToggle" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="soundPanel" aria-label="Music and sound settings" title="Music and sound settings">🔊</button>
+      <button class="icon-btn" id="soundToggle" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="soundPanel" data-i18n-label="ariaSound" aria-label="Music and sound settings" title="Music and sound settings">
+        <svg class="icon" aria-hidden="true"><use href="#icon-speaker-high"></use></svg>
+      </button>
       <div class="sound-panel" id="soundPanel" role="menu">
         <div class="sound-panel-row">
           <div class="sound-panel-label">
-            <span class="label">Music volume</span>
+            <span class="label" data-i18n="soundVolumeLabel">Music volume</span>
             <span class="label" id="volumeValue">35%</span>
           </div>
           <input type="range" class="meter-slider" id="volumeSlider" min="0" max="100" step="1" value="35" aria-label="Music volume" />
         </div>
-        <button class="btn btn-sm btn-secondary" id="muteButton" type="button">Mute</button>
+        <button class="btn btn-sm btn-secondary" id="muteButton" type="button" data-i18n="muteLabel">Mute</button>
       </div>
     </div>
-    <button class="icon-btn" id="themeToggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+    <button class="icon-btn" id="themeToggle" type="button" data-i18n-label="ariaTheme" aria-label="Toggle dark mode" title="Toggle dark mode">
+      <svg class="icon" aria-hidden="true"><use href="#icon-moon"></use></svg>
+    </button>
   </div>
 
   <div class="ticker" aria-hidden="true">
@@ -47,23 +182,26 @@
 
       <section class="page active" id="page-ask" aria-labelledby="ask-title">
         <div class="panel">
-          <div class="corner-tag">EXHIBIT A</div>
-          <div class="badge">✨ a very important question</div>
+          <div class="corner-tag" data-i18n="cornerA">EXHIBIT A</div>
+          <div class="badge">
+            <svg class="icon" aria-hidden="true"><use href="#icon-sparkle"></use></svg>
+            <span data-i18n="badgeAsk">a very important question</span>
+          </div>
           <div class="section-stack">
             <div>
-              <h1 id="ask-title">Would you like to go on a date with me?</h1>
-              <p class="lede">I promise low pressure, high charm, and at least one suspiciously good snack. The "No" button has been legally advised not to cooperate.</p>
+              <h1 id="ask-title" data-i18n="askTitle">Would you like to go on a date with me?</h1>
+              <p class="lede" data-i18n="askLede">I promise low pressure, high charm, and at least one suspiciously good snack. The "No" button has been legally advised not to cooperate.</p>
             </div>
 
             <div class="button-row" aria-label="date decision buttons">
-              <button class="btn btn-primary" id="yesButton" type="button">Yes</button>
+              <button class="btn btn-primary" id="yesButton" type="button" data-i18n="yesLabel">Yes</button>
               <div class="slot" aria-hidden="true">
                 <button class="btn btn-secondary" id="noButton" type="button">No</button>
               </div>
             </div>
 
             <div class="attempt-counter">
-              <span>Attempts to escape:</span>
+              <span data-i18n="attemptsLabel">Attempts to escape:</span>
               <strong id="attemptCount">0</strong>
             </div>
           </div>
@@ -72,38 +210,43 @@
 
       <section class="page" id="page-details" aria-labelledby="details-title">
         <div class="panel">
-          <div class="corner-tag">EXHIBIT B</div>
-          <div class="badge">💘 let's make it official</div>
+          <div class="corner-tag" data-i18n="cornerB">EXHIBIT B</div>
+          <div class="badge">
+            <svg class="icon" aria-hidden="true"><use href="#icon-heart"></use></svg>
+            <span data-i18n="badgeDetails">let's make it official</span>
+          </div>
           <div class="section-stack">
             <div>
-              <h2 id="details-title">Pick the details</h2>
-              <p class="lede">You choose the timing and the vibe. I will show up with enthusiasm and excellent intentions.</p>
+              <h2 id="details-title" data-i18n="detailsTitle">Pick the details</h2>
+              <p class="lede" data-i18n="detailsLede">You choose the timing and the vibe. I will show up with enthusiasm and excellent intentions.</p>
             </div>
 
             <div class="picker-grid">
               <label class="field">
-                <span class="label">The date</span>
+                <span class="label" data-i18n="fieldDate">The date</span>
                 <input class="input" id="dateInput" type="date" />
               </label>
 
               <div class="field">
-                <label class="label" for="timeInput">The time</label>
+                <label class="label" for="timeInput" data-i18n="fieldTime">The time</label>
                 <div class="time-field-row">
                   <input class="input" id="timeInput" type="time" />
                   <div class="time-picker-wrap">
-                    <button class="icon-btn time-picker-btn" id="timePickerBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="timePickerPanel" aria-label="Pick time with mouse" title="Pick time with mouse">🕒</button>
+                    <button class="icon-btn time-picker-btn" id="timePickerBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="timePickerPanel" data-i18n-label="ariaTimePicker" aria-label="Pick time with mouse" title="Pick time with mouse">
+                      <svg class="icon" aria-hidden="true"><use href="#icon-clock"></use></svg>
+                    </button>
                     <div class="time-picker-panel" id="timePickerPanel" role="menu">
                       <div class="time-picker-row">
-                        <span class="label">Hour</span>
+                        <span class="label" data-i18n="hourLabel">Hour</span>
                         <span class="label" id="hourValue">19</span>
                       </div>
                       <input type="range" class="meter-slider" id="hourSlider" min="0" max="23" step="1" value="19" aria-label="Hour" />
                       <div class="time-picker-row">
-                        <span class="label">Minute</span>
+                        <span class="label" data-i18n="minuteLabel">Minute</span>
                         <span class="label" id="minuteValue">00</span>
                       </div>
                       <input type="range" class="meter-slider" id="minuteSlider" min="0" max="59" step="1" value="0" aria-label="Minute" />
-                      <button class="btn btn-sm btn-confirm" id="timePickerDone" type="button">Done</button>
+                      <button class="btn btn-sm btn-confirm" id="timePickerDone" type="button" data-i18n="timePickerDone">Done</button>
                     </div>
                   </div>
                 </div>
@@ -112,45 +255,88 @@
 
             <div class="vibes">
               <div class="vibe-heading">
-                <span class="label">The vibe</span>
-                <span class="vibe-help">Pick one that sounds delightfully dangerous.</span>
+                <span class="label" data-i18n="vibeHeading">The vibe</span>
+                <span class="vibe-help" data-i18n="vibeHelp">Pick one that sounds delightfully dangerous.</span>
               </div>
               <div class="vibe-grid" id="vibeGrid">
-                <button class="vibe-card" type="button" data-vibe="Pizza Night" data-emoji="🍕">
-                  <div class="emoji">🍕</div>
-                  <div class="title">Pizza Night</div>
-                  <div class="sub">Cheesy, cozy, and never complicated.</div>
+                <button class="vibe-card" type="button" data-vibe="pizza" data-emoji="🍕">
+                  <svg class="icon emoji" aria-hidden="true"><use href="#icon-pizza"></use></svg>
+                  <div class="title" data-i18n="vibePizzaTitle">Pizza Night</div>
+                  <div class="sub" data-i18n="vibePizzaSub">Cheesy, cozy, and never complicated.</div>
                 </button>
-                <button class="vibe-card" type="button" data-vibe="Sushi Date" data-emoji="🍣">
-                  <div class="emoji">🍣</div>
-                  <div class="title">Sushi Date</div>
-                  <div class="sub">Elegant bites and elite table manners.</div>
+                <button class="vibe-card" type="button" data-vibe="sushi" data-emoji="🍣">
+                  <svg class="icon emoji" aria-hidden="true"><use href="#icon-sushi"></use></svg>
+                  <div class="title" data-i18n="vibeSushiTitle">Sushi Date</div>
+                  <div class="sub" data-i18n="vibeSushiSub">Elegant bites and elite table manners.</div>
                 </button>
-                <button class="vibe-card" type="button" data-vibe="Movie Night" data-emoji="🎬">
-                  <div class="emoji">🎬</div>
-                  <div class="title">Movie Night</div>
-                  <div class="sub">Popcorn, plot twists, and hand-holding potential.</div>
+                <button class="vibe-card" type="button" data-vibe="movie" data-emoji="🎬">
+                  <svg class="icon emoji" aria-hidden="true"><use href="#icon-film"></use></svg>
+                  <div class="title" data-i18n="vibeMovieTitle">Movie Night</div>
+                  <div class="sub" data-i18n="vibeMovieSub">Popcorn, plot twists, and hand-holding potential.</div>
                 </button>
-                <button class="vibe-card" type="button" data-vibe="Cozy Café" data-emoji="☕">
-                  <div class="emoji">☕</div>
-                  <div class="title">Cozy Café</div>
-                  <div class="sub">Cute drinks, good chats, soft playlist energy.</div>
+                <button class="vibe-card" type="button" data-vibe="cafe" data-emoji="☕">
+                  <svg class="icon emoji" aria-hidden="true"><use href="#icon-coffee"></use></svg>
+                  <div class="title" data-i18n="vibeCafeTitle">Cozy Café</div>
+                  <div class="sub" data-i18n="vibeCafeSub">Cute drinks, good chats, soft playlist energy.</div>
                 </button>
-                <button class="vibe-card" type="button" data-vibe="Adventure Day" data-emoji="🎢">
-                  <div class="emoji">🎢</div>
-                  <div class="title">Adventure Day</div>
-                  <div class="sub">A little spontaneous, a little chaotic, a lot fun.</div>
+                <button class="vibe-card" type="button" data-vibe="adventure" data-emoji="🎢">
+                  <svg class="icon emoji" aria-hidden="true"><use href="#icon-mountain"></use></svg>
+                  <div class="title" data-i18n="vibeAdventureTitle">Adventure Day</div>
+                  <div class="sub" data-i18n="vibeAdventureSub">A little spontaneous, a little chaotic, a lot fun.</div>
                 </button>
-                <button class="vibe-card" type="button" data-vibe="Ice Cream Walk" data-emoji="🍦">
-                  <div class="emoji">🍦</div>
-                  <div class="title">Ice Cream Walk</div>
-                  <div class="sub">Sweet treats and a stroll with excellent vibes.</div>
+                <button class="vibe-card" type="button" data-vibe="icecream" data-emoji="🍦">
+                  <svg class="icon emoji" aria-hidden="true"><use href="#icon-ice-cream"></use></svg>
+                  <div class="title" data-i18n="vibeIcecreamTitle">Ice Cream Walk</div>
+                  <div class="sub" data-i18n="vibeIcecreamSub">Sweet treats and a stroll with excellent vibes.</div>
                 </button>
               </div>
             </div>
 
+            <div class="place-block">
+              <div class="vibe-heading">
+                <span class="label" data-i18n="placeHeading">The place</span>
+                <span class="vibe-help" data-i18n="placeHelp">Pick a spot on the map (totally optional, just for fun).</span>
+              </div>
+              <div class="world-map" id="worldMap">
+                <svg class="world-map-svg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                  <polygon class="continent" points="60,80 220,60 260,140 200,220 120,260 40,200 30,120" />
+                  <polygon class="continent" points="230,260 300,250 320,380 250,460 190,400 200,300" />
+                  <polygon class="continent" points="440,70 520,60 540,120 480,150 430,120" />
+                  <polygon class="continent" points="440,160 540,150 560,280 500,400 430,380 410,260" />
+                  <polygon class="continent" points="560,50 820,40 900,160 840,280 680,260 580,180" />
+                  <polygon class="continent" points="800,340 900,330 920,390 850,420 790,390" />
+                </svg>
+                <div class="place-pins" id="placePins">
+                  <button class="place-pin" type="button" data-place="usual" style="left:15%; top:30%;">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>
+                    <span class="place-pin-label" data-i18n="placeUsual">Our Usual Spot</span>
+                  </button>
+                  <button class="place-pin" type="button" data-place="new" style="left:26%; top:68%;">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>
+                    <span class="place-pin-label" data-i18n="placeNew">Somewhere New</span>
+                  </button>
+                  <button class="place-pin" type="button" data-place="favcafe" style="left:48%; top:20%;">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>
+                    <span class="place-pin-label" data-i18n="placeFavcafe">Her Favorite Café</span>
+                  </button>
+                  <button class="place-pin" type="button" data-place="downtown" style="left:48%; top:54%;">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>
+                    <span class="place-pin-label" data-i18n="placeDowntown">Downtown</span>
+                  </button>
+                  <button class="place-pin" type="button" data-place="water" style="left:70%; top:32%;">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>
+                    <span class="place-pin-label" data-i18n="placeWater">By the Water</span>
+                  </button>
+                  <button class="place-pin" type="button" data-place="surprise" style="left:85%; top:74%;">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>
+                    <span class="place-pin-label" data-i18n="placeSurprise">Surprise Me</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div class="field">
-              <span class="label">How excited are you? (be honest, I'll know)</span>
+              <span class="label" data-i18n="excitementHeading">How excited are you? (be honest, I'll know)</span>
               <div class="meter-block">
                 <div class="meter-face" id="meterFace">🙂</div>
                 <div class="meter-label" id="meterLabel">Cautiously optimistic</div>
@@ -159,7 +345,9 @@
             </div>
 
             <div class="confirm-wrap">
-              <button class="btn btn-confirm" id="confirmButton" type="button" disabled>It's a date! 💕</button>
+              <button class="btn btn-confirm" id="confirmButton" type="button" disabled>
+                <span data-i18n="confirmButtonLabel">It's a date! 💕</span>
+              </button>
             </div>
           </div>
         </div>
@@ -167,53 +355,60 @@
 
       <section class="page" id="page-confirm" aria-labelledby="confirm-title">
         <div class="panel">
-          <div class="corner-tag">EXHIBIT C</div>
-          <div class="badge">🎉 confirmation unlocked</div>
+          <div class="corner-tag" data-i18n="cornerC">EXHIBIT C</div>
+          <div class="badge">
+            <svg class="icon" aria-hidden="true"><use href="#icon-party"></use></svg>
+            <span data-i18n="badgeConfirm">confirmation unlocked</span>
+          </div>
           <div class="summary">
             <div>
-              <h2 id="confirm-title">It's official!</h2>
+              <h2 id="confirm-title" data-i18n="confirmTitle">It's official!</h2>
               <p class="lede" id="confirmMessage">See you soon for something extremely cute.</p>
             </div>
 
             <div class="ticket" id="dateCard">
               <div class="ticket-row">
-                <span class="ticket-key">📅 Date</span>
+                <span class="ticket-key"><svg class="icon" aria-hidden="true"><use href="#icon-calendar"></use></svg> <span data-i18n="ticketDate">Date</span></span>
                 <span class="ticket-val" id="summaryDate">—</span>
               </div>
               <div class="ticket-row">
-                <span class="ticket-key">🕒 Time</span>
+                <span class="ticket-key"><svg class="icon" aria-hidden="true"><use href="#icon-clock"></use></svg> <span data-i18n="ticketTime">Time</span></span>
                 <span class="ticket-val" id="summaryTime">—</span>
               </div>
               <div class="ticket-row">
-                <span class="ticket-key">💖 Vibe</span>
+                <span class="ticket-key"><svg class="icon" aria-hidden="true"><use href="#icon-heart"></use></svg> <span data-i18n="ticketVibe">Vibe</span></span>
                 <span class="ticket-val" id="summaryVibe">—</span>
               </div>
+              <div class="ticket-row" id="placeRow">
+                <span class="ticket-key"><svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg> <span data-i18n="ticketPlace">Place</span></span>
+                <span class="ticket-val" id="summaryPlace">—</span>
+              </div>
               <div class="ticket-row">
-                <span class="ticket-key">🔥 Excitement</span>
+                <span class="ticket-key"><svg class="icon" aria-hidden="true"><use href="#icon-flame"></use></svg> <span data-i18n="ticketExcitement">Excitement</span></span>
                 <span class="ticket-val" id="summaryExcitement">—</span>
               </div>
             </div>
 
             <div>
-              <span class="label">Countdown to launch</span>
+              <span class="label" data-i18n="countdownHeading">Countdown to launch</span>
               <div class="countdown" id="countdown">
-                <div class="countdown-box"><span class="countdown-num" id="cdDays">00</span><span class="countdown-unit">Days</span></div>
-                <div class="countdown-box"><span class="countdown-num" id="cdHours">00</span><span class="countdown-unit">Hrs</span></div>
-                <div class="countdown-box"><span class="countdown-num" id="cdMinutes">00</span><span class="countdown-unit">Min</span></div>
-                <div class="countdown-box"><span class="countdown-num" id="cdSeconds">00</span><span class="countdown-unit">Sec</span></div>
+                <div class="countdown-box"><span class="countdown-num" id="cdDays">00</span><span class="countdown-unit" data-i18n="countdownDays">Days</span></div>
+                <div class="countdown-box"><span class="countdown-num" id="cdHours">00</span><span class="countdown-unit" data-i18n="countdownHours">Hrs</span></div>
+                <div class="countdown-box"><span class="countdown-num" id="cdMinutes">00</span><span class="countdown-unit" data-i18n="countdownMinutes">Min</span></div>
+                <div class="countdown-box"><span class="countdown-num" id="cdSeconds">00</span><span class="countdown-unit" data-i18n="countdownSeconds">Sec</span></div>
               </div>
             </div>
 
-            <p class="tiny-note">Psst — try the Konami code (↑ ↑ ↓ ↓ ← → ← → B A) for a bonus surprise.</p>
+            <p class="tiny-note" data-i18n="tinyNote">Psst — try the Konami code (↑ ↑ ↓ ↓ ← → ← → B A) for a bonus surprise.</p>
 
             <div class="action-row">
-              <button class="btn btn-mint btn-sm" id="calendarButton" type="button">Add to Calendar</button>
-              <button class="btn btn-blue btn-sm" id="downloadButton" type="button">Download Date Card</button>
-              <button class="btn btn-violet btn-sm" id="shareButton" type="button">Share the News</button>
+              <button class="btn btn-mint btn-sm" id="calendarButton" type="button" data-i18n="calendarBtn">Add to Calendar</button>
+              <button class="btn btn-blue btn-sm" id="downloadButton" type="button" data-i18n="downloadBtn">Download Date Card</button>
+              <button class="btn btn-violet btn-sm" id="shareButton" type="button" data-i18n="shareBtn">Share the News</button>
             </div>
 
             <div class="confirm-wrap">
-              <button class="btn btn-reset" id="resetButton" type="button">Start Over / Reset</button>
+              <button class="btn btn-reset" id="resetButton" type="button" data-i18n="resetBtn">Start Over / Reset</button>
             </div>
           </div>
         </div>

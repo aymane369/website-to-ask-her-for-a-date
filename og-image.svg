@@ -1,0 +1,11 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#fdf3e4" />
+  <rect x="30" y="30" width="1140" height="570" fill="#ffffff" stroke="#111111" stroke-width="10" />
+  <rect x="30" y="30" width="1140" height="140" fill="#ff3d81" stroke="#111111" stroke-width="10" />
+  <text x="70" y="120" font-family="Arial, sans-serif" font-weight="900" font-size="64" fill="#ffffff">WOULD YOU LIKE TO</text>
+  <text x="70" y="290" font-family="Arial, sans-serif" font-weight="900" font-size="80" fill="#111111">GO ON A DATE</text>
+  <text x="70" y="380" font-family="Arial, sans-serif" font-weight="900" font-size="80" fill="#111111">WITH ME?</text>
+  <text x="70" y="460" font-family="Arial, sans-serif" font-weight="600" font-size="32" fill="#55504a">Tap to find out. The "No" button has been legally</text>
+  <text x="70" y="500" font-family="Arial, sans-serif" font-weight="600" font-size="32" fill="#55504a">advised not to cooperate.</text>
+  <path d="M1040 470s-60-37-80-74C948 368 954 335 980 328c16-4 29 5 35 21 6-16 19-25 35-21 26 7 32 40 20 68-20 37-30 74-30 74z" fill="#ff3d81" stroke="#111111" stroke-width="6"/>
+</svg>

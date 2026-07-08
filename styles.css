@@ -7,6 +7,7 @@
   --paper: #fdf3e4;
   --panel: #ffffff;
   --pink: #ff3d81;
+  --pink-strong: #d61f6e;
   --yellow: #ffd400;
   --blue: #2b57ff;
   --mint: #00d9a5;
@@ -322,7 +323,7 @@ html[data-theme="dark"] body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.9rem;
-  background: var(--pink);
+  background: var(--pink-strong);
   color: #fff;
   border: 2px solid var(--ink);
   font-family: var(--font-mono);
@@ -333,6 +334,33 @@ html[data-theme="dark"] body {
   margin-bottom: 20px;
   transform: rotate(-1.5deg);
   box-shadow: 4px 4px 0 0 var(--ink);
+}
+
+.badge .icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+/* ---------- hand-rolled icon sprite sizing ---------- */
+.icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  display: inline-block;
+  vertical-align: -0.2em;
+  flex-shrink: 0;
+}
+
+.icon-btn .icon {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.lang-toggle {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
 }
 
 h1, h2, h3 {
@@ -397,7 +425,7 @@ h2 {
 }
 
 .btn-primary {
-  background: var(--pink);
+  background: var(--pink-strong);
   color: #fff;
 }
 
@@ -628,9 +656,15 @@ h2 {
   text-align: left;
 }
 
-.vibe-card .emoji { font-size: 1.7rem; }
+.vibe-card .emoji { width: 1.9rem; height: 1.9rem; color: var(--ink); }
 .vibe-card .title { font-weight: 800; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.01em; }
 .vibe-card .sub { color: var(--muted); font-size: 0.86rem; line-height: 1.3; }
+
+.vibe-card[data-vibe="pizza"] .emoji { color: var(--pink-strong); }
+.vibe-card[data-vibe="sushi"] .emoji { color: var(--blue); }
+.vibe-card[data-vibe="movie"] .emoji { color: var(--violet); }
+.vibe-card[data-vibe="adventure"] .emoji { color: #1f9c78; }
+.vibe-card[data-vibe="icecream"] .emoji { color: #a86e00; }
 
 .vibe-card:hover {
   transform: translate(-2px, -2px);
@@ -641,6 +675,86 @@ h2 {
   background: var(--yellow);
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0 0 var(--ink);
+}
+
+/* ---------- place / world map picker ---------- */
+.place-block {
+  margin-top: 4px;
+}
+
+.world-map {
+  position: relative;
+  margin-top: 14px;
+  border: var(--border-w) solid var(--ink);
+  background: var(--paper);
+  box-shadow: 4px 4px 0 0 var(--ink);
+  aspect-ratio: 2 / 1;
+  overflow: hidden;
+}
+
+.world-map-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.continent {
+  fill: var(--panel);
+  stroke: var(--ink);
+  stroke-width: 3;
+}
+
+.place-pins {
+  position: absolute;
+  inset: 0;
+}
+
+.place-pin {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: var(--pink-strong);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.place-pin .icon {
+  width: 26px;
+  height: 26px;
+  filter: drop-shadow(2px 2px 0 var(--ink));
+}
+
+.place-pin-label {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  background: var(--panel);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  padding: 2px 6px;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 0 var(--ink);
+}
+
+.place-pin:hover {
+  transform: translate(-50%, -100%) scale(1.08);
+}
+
+.place-pin.selected {
+  color: var(--yellow);
+}
+
+.place-pin.selected .place-pin-label {
+  background: var(--yellow);
 }
 
 /* excitement meter */
@@ -757,12 +871,24 @@ input[type="range"].meter-slider::-moz-range-thumb {
 }
 
 .ticket-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-family: var(--font-mono);
   font-weight: 700;
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--muted);
+}
+
+.ticket-key .icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.ticket-row.is-empty {
+  display: none;
 }
 
 .ticket-val {
@@ -876,6 +1002,16 @@ input[type="range"].meter-slider::-moz-range-thumb {
 
   .countdown {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .place-pin .icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .place-pin-label {
+    font-size: 0.52rem;
+    padding: 1px 4px;
   }
 }
 
