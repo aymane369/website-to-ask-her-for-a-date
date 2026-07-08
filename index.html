@@ -17,6 +17,10 @@
 
   <div class="egg-banner" id="eggBanner">🥚 Secret mode unlocked!</div>
 
+  <audio id="bgMusic" loop preload="auto">
+    <source src="audio.mp3" type="audio/mpeg" />
+  </audio>
+
   <div class="controls">
     <div class="sound-control">
       <button class="icon-btn" id="soundToggle" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="soundPanel" aria-label="Music and sound settings" title="Music and sound settings">🔊</button>
@@ -82,10 +86,28 @@
                 <input class="input" id="dateInput" type="date" />
               </label>
 
-              <label class="field">
-                <span class="label">The time</span>
-                <input class="input" id="timeInput" type="time" />
-              </label>
+              <div class="field">
+                <label class="label" for="timeInput">The time</label>
+                <div class="time-field-row">
+                  <input class="input" id="timeInput" type="time" />
+                  <div class="time-picker-wrap">
+                    <button class="icon-btn time-picker-btn" id="timePickerBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="timePickerPanel" aria-label="Pick time with mouse" title="Pick time with mouse">🕒</button>
+                    <div class="time-picker-panel" id="timePickerPanel" role="menu">
+                      <div class="time-picker-row">
+                        <span class="label">Hour</span>
+                        <span class="label" id="hourValue">19</span>
+                      </div>
+                      <input type="range" class="meter-slider" id="hourSlider" min="0" max="23" step="1" value="19" aria-label="Hour" />
+                      <div class="time-picker-row">
+                        <span class="label">Minute</span>
+                        <span class="label" id="minuteValue">00</span>
+                      </div>
+                      <input type="range" class="meter-slider" id="minuteSlider" min="0" max="59" step="1" value="0" aria-label="Minute" />
+                      <button class="btn btn-sm btn-confirm" id="timePickerDone" type="button">Done</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="vibes">

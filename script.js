@@ -15,6 +15,13 @@
   const attemptCount = document.getElementById("attemptCount");
   const dateInput = document.getElementById("dateInput");
   const timeInput = document.getElementById("timeInput");
+  const timePickerBtn = document.getElementById("timePickerBtn");
+  const timePickerPanel = document.getElementById("timePickerPanel");
+  const hourSlider = document.getElementById("hourSlider");
+  const minuteSlider = document.getElementById("minuteSlider");
+  const hourValue = document.getElementById("hourValue");
+  const minuteValue = document.getElementById("minuteValue");
+  const timePickerDone = document.getElementById("timePickerDone");
   const vibeGrid = document.getElementById("vibeGrid");
   const meterSlider = document.getElementById("meterSlider");
   const meterFace = document.getElementById("meterFace");
@@ -36,6 +43,7 @@
   const volumeSlider = document.getElementById("volumeSlider");
   const volumeValue = document.getElementById("volumeValue");
   const muteButton = document.getElementById("muteButton");
+  const bgMusic = document.getElementById("bgMusic");
   const themeToggle = document.getElementById("themeToggle");
   const calendarButton = document.getElementById("calendarButton");
   const downloadButton = document.getElementById("downloadButton");
@@ -79,29 +87,6 @@
     { face: "🥳", label: "Already picking outfits" },
   ];
 
-  // an original little music-box loop, synthesized so the site stays
-  // a plain static page with no audio file to host or license.
-  const musicMelody = [
-    { f: 523.25, d: 0.32 }, // C5
-    { f: 587.33, d: 0.32 }, // D5
-    { f: 659.25, d: 0.32 }, // E5
-    { f: 587.33, d: 0.32 }, // D5
-    { f: 523.25, d: 0.32 }, // C5
-    { f: 493.88, d: 0.32 }, // B4
-    { f: 440.00, d: 0.64 }, // A4
-    { f: 493.88, d: 0.32 }, // B4
-    { f: 523.25, d: 0.64 }, // C5
-    { f: 659.25, d: 0.32 }, // E5
-    { f: 587.33, d: 0.32 }, // D5
-    { f: 523.25, d: 0.64 }, // C5
-  ];
-
-  const musicBassNotes = [
-    261.63, null, null, null,
-    220.00, null, null, null,
-    196.00, null, null, null,
-  ];
-
   const state = loadState();
   let currentPage = "ask";
   let noLimit = state.noLimit ?? randomInt(5, 8);
@@ -116,10 +101,6 @@
   let masterVolume = storedVolume === null ? 35 : clampVolume(Number(storedVolume));
   let audioCtx = null;
   let masterGain = null;
-  let musicStarted = false;
-  let musicNoteIndex = 0;
-  let musicNextNoteTime = 0;
-  let musicSchedulerId = null;
 
   state.noLimit = noLimit;
   if (!state.date) {
@@ -196,6 +177,33 @@
     playTone(420, 0.06, "square", 0.06);
   });
 
+  timePickerBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (timePickerPanel.classList.contains("open")) {
+      closeTimePicker();
+    } else {
+      openTimePicker();
+    }
+  });
+
+  timePickerPanel.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  hourSlider.addEventListener("input", () => {
+    hourValue.textContent = String(hourSlider.value).padStart(2, "0");
+    commitPickerTime();
+  });
+
+  minuteSlider.addEventListener("input", () => {
+    minuteValue.textContent = String(minuteSlider.value).padStart(2, "0");
+    commitPickerTime();
+  });
+
+  timePickerDone.addEventListener("click", () => {
+    closeTimePicker();
+  });
+
   vibeGrid.addEventListener("click", (event) => {
     const card = event.target.closest(".vibe-card");
     if (!card) return;
@@ -251,10 +259,14 @@
 
   document.addEventListener("click", () => {
     closeSoundPanel();
+    closeTimePicker();
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeSoundPanel();
+    if (event.key === "Escape") {
+      closeSoundPanel();
+      closeTimePicker();
+    }
   });
 
   volumeSlider.addEventListener("input", () => {
@@ -267,6 +279,7 @@
     }
     updateSoundIcon();
     applyVolumeToGraph();
+    applyMusicVolume();
   });
 
   muteButton.addEventListener("click", () => {
@@ -275,6 +288,7 @@
     updateMuteButton();
     updateSoundIcon();
     applyVolumeToGraph();
+    applyMusicVolume();
     if (!muted) playTone(560, 0.08, "sine", 0.08);
   });
 
@@ -387,6 +401,28 @@
   function closeSoundPanel() {
     soundPanel.classList.remove("open");
     soundToggle.setAttribute("aria-expanded", "false");
+  }
+
+  function openTimePicker() {
+    const [h, m] = (timeInput.value || "19:00").split(":").map(Number);
+    hourSlider.value = String(Number.isFinite(h) ? h : 19);
+    minuteSlider.value = String(Number.isFinite(m) ? m : 0);
+    hourValue.textContent = String(hourSlider.value).padStart(2, "0");
+    minuteValue.textContent = String(minuteSlider.value).padStart(2, "0");
+    timePickerPanel.classList.add("open");
+    timePickerBtn.setAttribute("aria-expanded", "true");
+  }
+
+  function closeTimePicker() {
+    timePickerPanel.classList.remove("open");
+    timePickerBtn.setAttribute("aria-expanded", "false");
+  }
+
+  function commitPickerTime() {
+    const h = String(hourSlider.value).padStart(2, "0");
+    const m = String(minuteSlider.value).padStart(2, "0");
+    timeInput.value = `${h}:${m}`;
+    timeInput.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
   // ---------- ticker ----------
@@ -979,48 +1015,27 @@
   }
 
   // ---------- background music ----------
-  function scheduleMusicNote(freq, time, duration, peak) {
-    const osc = audioCtx.createOscillator();
-    const noteGain = audioCtx.createGain();
-    osc.type = "triangle";
-    osc.frequency.value = freq;
-    noteGain.gain.setValueAtTime(0.0001, time);
-    noteGain.gain.exponentialRampToValueAtTime(peak, time + 0.04);
-    noteGain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
-    osc.connect(noteGain).connect(masterGain);
-    osc.start(time);
-    osc.stop(time + duration + 0.05);
+  function applyMusicVolume() {
+    bgMusic.volume = currentVolumeLevel();
+    // .volume is ignored on some mobile browsers (notably iOS Safari),
+    // so muted is set too as a fallback that those platforms do honor.
+    bgMusic.muted = muted;
   }
 
-  function musicSchedulerTick() {
-    while (musicNextNoteTime < audioCtx.currentTime + 0.2) {
-      const note = musicMelody[musicNoteIndex % musicMelody.length];
-      scheduleMusicNote(note.f, musicNextNoteTime, note.d * 0.9, 0.1);
-      const bass = musicBassNotes[musicNoteIndex % musicBassNotes.length];
-      if (bass) {
-        scheduleMusicNote(bass, musicNextNoteTime, note.d * 1.6, 0.05);
-      }
-      musicNextNoteTime += note.d;
-      musicNoteIndex += 1;
+  function attemptPlayMusic() {
+    const playPromise = bgMusic.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(() => {});
     }
   }
 
-  function startMusic() {
-    if (musicStarted) return;
-    musicStarted = true;
-    ensureAudioContext();
-    musicNextNoteTime = audioCtx.currentTime + 0.1;
-    musicSchedulerTick();
-    musicSchedulerId = window.setInterval(musicSchedulerTick, 120);
-  }
-
   function initMusic() {
+    applyMusicVolume();
     // most browsers block audio until the visitor interacts with the
-    // page at least once — start the scheduler now (silent until that
-    // first tap/click/key) and unlock it on the very first interaction.
-    startMusic();
+    // page at least once — try now, then unlock on the first interaction.
+    attemptPlayMusic();
     const unlock = () => {
-      ensureAudioContext();
+      attemptPlayMusic();
       document.removeEventListener("pointerdown", unlock);
       document.removeEventListener("keydown", unlock);
       document.removeEventListener("touchstart", unlock);

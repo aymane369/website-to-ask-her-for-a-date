@@ -533,6 +533,58 @@ h2 {
   outline-offset: 2px;
 }
 
+.time-field-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.time-field-row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.time-picker-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.time-picker-btn {
+  width: 56px;
+  height: 56px;
+}
+
+.time-picker-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 240px;
+  background: var(--panel);
+  border: var(--border-w) solid var(--ink);
+  box-shadow: var(--shadow-lg);
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(-8px) scale(0.96);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 32;
+}
+
+.time-picker-panel.open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.time-picker-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .vibes {
   display: grid;
   gap: 12px;
