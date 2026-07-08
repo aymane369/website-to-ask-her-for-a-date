@@ -11,6 +11,7 @@
 
   const yesButton = document.getElementById("yesButton");
   const noButton = document.getElementById("noButton");
+  const noButtonHome = noButton.parentElement;
   const attemptCount = document.getElementById("attemptCount");
   const dateInput = document.getElementById("dateInput");
   const timeInput = document.getElementById("timeInput");
@@ -453,10 +454,21 @@
 
   function escapeNoButton(source) {
     if (!noFixed) {
+      // .page slides/scales in with a CSS transform, and a transform on
+      // any ancestor makes it the containing block for position:fixed
+      // descendants (per spec) — so left/top computed against
+      // window.innerWidth/innerHeight would land relative to .page
+      // instead of the real viewport. Move the button up to <body> so
+      // "fixed" actually means fixed to the screen.
+      document.body.appendChild(noButton);
       noButton.style.position = "fixed";
       noButton.style.zIndex = "20";
       noButton.style.margin = "0";
       noButton.style.whiteSpace = "nowrap";
+      // the mobile layout forces .btn-secondary to width:100%; override
+      // it so the dodging button stays a small pill instead of a bar.
+      noButton.style.width = "max-content";
+      noButton.style.maxWidth = "calc(100vw - 48px)";
       noButton.style.transition = "top 260ms cubic-bezier(.2,.9,.22,1), left 260ms cubic-bezier(.2,.9,.22,1), transform 260ms cubic-bezier(.2,.9,.22,1)";
       noFixed = true;
     }
@@ -502,11 +514,15 @@
 
     noButton.textContent = "Okay fine... Yes 😮‍💨";
     noButton.classList.add("surrendered", "pulse");
+    if (noFixed) {
+      noButtonHome.appendChild(noButton);
+    }
     noButton.style.position = "";
     noButton.style.left = "";
     noButton.style.top = "";
     noButton.style.transform = "";
     noButton.style.width = "";
+    noButton.style.maxWidth = "";
     noButton.style.height = "";
     noButton.style.zIndex = "";
     noButton.style.margin = "";
