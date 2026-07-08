@@ -461,7 +461,9 @@
     .confirm-wrap {
       margin-top: 28px;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
     }
 
     .btn-confirm {
@@ -476,6 +478,21 @@
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
+    }
+
+    .btn-reset {
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-decoration: underline;
+      padding: 6px 12px;
+      min-height: auto;
+    }
+
+    .btn-reset:hover {
+      color: var(--ink);
+      transform: none;
     }
 
     .summary {
@@ -710,6 +727,9 @@
               <div class="summary-line"><span class="summary-pill">💖 <span id="summaryVibe">—</span></span></div>
             </div>
             <p class="tiny-note">I am, respectfully, already excited.</p>
+            <div class="confirm-wrap">
+              <button class="btn btn-reset" id="resetButton" type="button">Start Over / Reset</button>
+            </div>
           </div>
         </div>
       </section>
@@ -732,6 +752,7 @@
       const timeInput = document.getElementById("timeInput");
       const vibeGrid = document.getElementById("vibeGrid");
       const confirmButton = document.getElementById("confirmButton");
+      const resetButton = document.getElementById("resetButton");
       const confirmMessage = document.getElementById("confirmMessage");
       const summaryDate = document.getElementById("summaryDate");
       const summaryTime = document.getElementById("summaryTime");
@@ -748,6 +769,11 @@
       let noFixed = false;
 
       state.noLimit = noLimit;
+      
+      if (!state.date) {
+        state.date = todayDateString();
+      }
+
       hydrateInputs();
       hydrateVibes();
       showPage(resolvePageFromHashOrState(), { replaceHash: true, animateCelebration: false });
@@ -821,6 +847,12 @@
         goTo("confirm");
       });
 
+      resetButton.addEventListener("click", () => {
+        sessionStorage.removeItem(stateKey);
+        window.location.hash = "ask";
+        window.location.reload();
+      });
+
       window.addEventListener("hashchange", () => {
         const page = normalizePage(location.hash.replace("#", ""));
         if (page) {
@@ -840,7 +872,6 @@
         try {
           sessionStorage.setItem(stateKey, JSON.stringify(state));
         } catch {
-          // Storage is a convenience; the experience still works without it.
         }
       }
 
@@ -994,9 +1025,7 @@
       }
 
       function escapeNoButton(source) {
-        if (noFixed) {
-          noButton.style.transition = "top 260ms var(--ease), left 260ms var(--ease), transform 260ms var(--ease)";
-        } else {
+        if (!noFixed) {
           noButton.style.position = "fixed";
           noButton.style.zIndex = "20";
           noButton.style.margin = "0";
@@ -1007,12 +1036,12 @@
         }
 
         const rect = noButton.getBoundingClientRect();
-        const margin = 18;
-        const maxX = Math.max(margin, window.innerWidth - rect.width - margin);
-        const maxY = Math.max(margin, window.innerHeight - rect.height - margin);
+        const margin = 24;
+        const maxX = window.innerWidth - rect.width - margin;
+        const maxY = window.innerHeight - rect.height - margin;
 
-        let x = randomBetween(margin, maxX);
-        let y = randomBetween(margin, maxY);
+        let x = randomBetween(margin, Math.max(margin, maxX));
+        let y = randomBetween(margin, Math.max(margin, maxY));
 
         if (typeof source === "string" && source.includes("mouse")) {
           const pointer = lastPointer();
@@ -1028,7 +1057,7 @@
 
         noButton.style.left = `${x}px`;
         noButton.style.top = `${y}px`;
-        noButton.style.transform = `translate(-50%, -50%) rotate(${randomBetween(-10, 10)}deg)`;
+        noButton.style.transform = `rotate(${randomBetween(-10, 10)}deg)`;
       }
 
       function surrenderNoButton() {
