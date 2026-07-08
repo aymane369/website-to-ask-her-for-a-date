@@ -456,16 +456,18 @@
       noButton.style.position = "fixed";
       noButton.style.zIndex = "20";
       noButton.style.margin = "0";
-      noButton.style.width = `${noButton.offsetWidth}px`;
-      noButton.style.height = `${noButton.offsetHeight}px`;
+      noButton.style.whiteSpace = "nowrap";
       noButton.style.transition = "top 260ms cubic-bezier(.2,.9,.22,1), left 260ms cubic-bezier(.2,.9,.22,1), transform 260ms cubic-bezier(.2,.9,.22,1)";
       noFixed = true;
     }
 
+    // re-measure every time: the phrase (and therefore the button's
+    // natural width) changes on each attempt, so a stale rect would
+    // let the new, wider text overflow past the viewport edge.
     const rect = noButton.getBoundingClientRect();
     const margin = 24;
-    const maxX = window.innerWidth - rect.width - margin;
-    const maxY = window.innerHeight - rect.height - margin;
+    const maxX = Math.max(margin, window.innerWidth - rect.width - margin);
+    const maxY = Math.max(margin, window.innerHeight - rect.height - margin);
 
     let x = randomBetween(margin, Math.max(margin, maxX));
     let y = randomBetween(margin, Math.max(margin, maxY));
@@ -508,6 +510,7 @@
     noButton.style.height = "";
     noButton.style.zIndex = "";
     noButton.style.margin = "";
+    noButton.style.whiteSpace = "";
     noButton.style.transition = "";
     noFixed = false;
   }
