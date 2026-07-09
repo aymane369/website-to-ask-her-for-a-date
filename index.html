@@ -20,6 +20,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet: the one exception to "no external deps" (see PROJECT.md) —
+       needed for a real, precise, click/search-anywhere map. -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -295,38 +300,13 @@
             <div class="place-block">
               <div class="vibe-heading">
                 <span class="label" data-i18n="placeHeading">The place</span>
-                <span class="vibe-help" data-i18n="placeHelp">Pick a spot on the map (totally optional, just for fun).</span>
+                <span class="vibe-help" data-i18n="placeHelp">Search a spot or click/drag the pin — pick exactly where you want to meet.</span>
               </div>
-              <div class="world-map" id="worldMap">
-                <div class="world-map-svg" id="worldMapSvg" aria-hidden="true"></div>
-                <div class="place-pins" id="placePins">
-                  <button class="place-pin" type="button" data-place="usual" style="left:15%; top:30%;">
-                    <svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>
-                    <span class="place-pin-label" data-i18n="placeUsual">Our Usual Spot</span>
-                  </button>
-                  <button class="place-pin" type="button" data-place="new" style="left:26%; top:68%;">
-                    <svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>
-                    <span class="place-pin-label" data-i18n="placeNew">Somewhere New</span>
-                  </button>
-                  <button class="place-pin" type="button" data-place="favcafe" style="left:48%; top:20%;">
-                    <svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>
-                    <span class="place-pin-label" data-i18n="placeFavcafe">Her Favorite Café</span>
-                  </button>
-                  <button class="place-pin" type="button" data-place="downtown" style="left:48%; top:54%;">
-                    <svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>
-                    <span class="place-pin-label" data-i18n="placeDowntown">Downtown</span>
-                  </button>
-                  <button class="place-pin" type="button" data-place="water" style="left:70%; top:32%;">
-                    <svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>
-                    <span class="place-pin-label" data-i18n="placeWater">By the Water</span>
-                  </button>
-                  <button class="place-pin" type="button" data-place="surprise" style="left:85%; top:74%;">
-                    <svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>
-                    <span class="place-pin-label" data-i18n="placeSurprise">Surprise Me</span>
-                  </button>
-                </div>
+              <div class="place-search-row">
+                <input class="input" id="placeSearchInput" type="text" data-i18n-placeholder="placeSearchPlaceholder" placeholder="Search for a city or address..." />
+                <button class="btn btn-sm btn-secondary" id="placeSearchButton" type="button" data-i18n="placeSearchButton">Search</button>
               </div>
-              <p class="map-credit">Map: <a href="https://commons.wikimedia.org/wiki/File:World_map_blank_without_borders.svg" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>, CC BY-SA 4.0</p>
+              <div class="leaflet-map" id="leafletMap" aria-label="Map for picking the meeting place"></div>
             </div>
 
             <div class="field">
@@ -412,6 +392,7 @@
 
   <canvas id="cardCanvas" width="1000" height="600" style="display:none;"></canvas>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="script.js"></script>
 </body>
 </html>

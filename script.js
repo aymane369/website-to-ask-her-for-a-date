@@ -55,13 +55,9 @@
       vibeIcecreamTitle: "Ice Cream Walk",
       vibeIcecreamSub: "Sweet treats and a stroll with excellent vibes.",
       placeHeading: "The place",
-      placeHelp: "Pick a spot on the map (totally optional, just for fun).",
-      placeUsual: "Our Usual Spot",
-      placeNew: "Somewhere New",
-      placeFavcafe: "Her Favorite Café",
-      placeDowntown: "Downtown",
-      placeWater: "By the Water",
-      placeSurprise: "Surprise Me",
+      placeHelp: "Search a spot or click/drag the pin — pick exactly where you want to meet.",
+      placeSearchPlaceholder: "Search for a city or address...",
+      placeSearchButton: "Search",
       excitementHeading: "How excited are you? (be honest, I'll know)",
       confirmButtonLabel: "It's a date! 💕",
       confirmTitle: "It's official!",
@@ -118,14 +114,6 @@
         adventure: { title: "Adventure Day" },
         icecream: { title: "Ice Cream Walk" },
       },
-      places: {
-        usual: "Our Usual Spot",
-        new: "Somewhere New",
-        favcafe: "Her Favorite Café",
-        downtown: "Downtown",
-        water: "By the Water",
-        surprise: "Surprise Me",
-      },
       vibeMysteryFallback: "a very cute mystery",
       dateMysteryFallback: "your chosen day",
       timeMysteryFallback: "your chosen time",
@@ -181,13 +169,9 @@
       vibeIcecreamTitle: "Balade Glace",
       vibeIcecreamSub: "Douceurs sucrées et balade dans une excellente ambiance.",
       placeHeading: "L'endroit",
-      placeHelp: "Choisis un point sur la carte (totalement facultatif, juste pour le fun).",
-      placeUsual: "Notre coin habituel",
-      placeNew: "Quelque part de nouveau",
-      placeFavcafe: "Son café préféré",
-      placeDowntown: "Centre-ville",
-      placeWater: "Près de l'eau",
-      placeSurprise: "Surprends-moi",
+      placeHelp: "Cherche un endroit ou clique/glisse le repère — choisis exactement où tu veux qu'on se retrouve.",
+      placeSearchPlaceholder: "Cherche une ville ou une adresse...",
+      placeSearchButton: "Chercher",
       excitementHeading: "T'es excitée à quel point ? (sois honnête, je le saurai)",
       confirmButtonLabel: "C'est un rendez-vous ! 💕",
       confirmTitle: "C'est officiel !",
@@ -244,14 +228,6 @@
         adventure: { title: "Journée Aventure" },
         icecream: { title: "Balade Glace" },
       },
-      places: {
-        usual: "Notre coin habituel",
-        new: "Quelque part de nouveau",
-        favcafe: "Son café préféré",
-        downtown: "Centre-ville",
-        water: "Près de l'eau",
-        surprise: "Surprends-moi",
-      },
       vibeMysteryFallback: "un mystère très mignon",
       dateMysteryFallback: "le jour que tu choisiras",
       timeMysteryFallback: "l'heure que tu choisiras",
@@ -281,8 +257,9 @@
   const minuteValue = document.getElementById("minuteValue");
   const timePickerDone = document.getElementById("timePickerDone");
   const vibeGrid = document.getElementById("vibeGrid");
-  const placePins = document.getElementById("placePins");
-  const worldMapSvg = document.getElementById("worldMapSvg");
+  const leafletMapEl = document.getElementById("leafletMap");
+  const placeSearchInput = document.getElementById("placeSearchInput");
+  const placeSearchButton = document.getElementById("placeSearchButton");
   const meterSlider = document.getElementById("meterSlider");
   const meterFace = document.getElementById("meterFace");
   const meterLabel = document.getElementById("meterLabel");
@@ -334,6 +311,8 @@
   let masterVolume = storedVolume === null ? 35 : clampVolume(Number(storedVolume));
   let audioCtx = null;
   let masterGain = null;
+  let leafletMap = null;
+  let placeMarker = null;
 
   state.noLimit = noLimit;
   if (!state.date) {
@@ -348,8 +327,6 @@
   initMusic();
   hydrateInputs();
   hydrateVibes();
-  hydratePlaces();
-  loadWorldMap();
   applyLocale();
   showPage(resolvePageFromHashOrState(), { replaceHash: true, animateCelebration: false });
   startAmbientShapes();
@@ -449,11 +426,15 @@
     playTone(500, 0.08, "square", 0.07);
   });
 
-  placePins.addEventListener("click", (event) => {
-    const pin = event.target.closest(".place-pin");
-    if (!pin) return;
-    selectPlace(pin.dataset.place);
-    playTone(500, 0.08, "square", 0.07);
+  placeSearchButton.addEventListener("click", () => {
+    runPlaceSearch();
+  });
+
+  placeSearchInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      runPlaceSearch();
+    }
   });
 
   meterSlider.addEventListener("input", () => {
@@ -587,11 +568,6 @@
     return (vibes && vibes[slug] && vibes[slug].title) || slug;
   }
 
-  function placeName(slug) {
-    const places = t("places");
-    return (places && places[slug]) || slug;
-  }
-
   function applyLocale() {
     document.documentElement.lang = locale;
     document.title = t("metaTitle");
@@ -610,6 +586,11 @@
         el.setAttribute("aria-label", value);
         el.setAttribute("title", value);
       }
+    });
+
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+      const value = t(el.dataset.i18nPlaceholder);
+      if (typeof value === "string") el.setAttribute("placeholder", value);
     });
 
     buildTicker();
@@ -760,26 +741,106 @@
     });
   }
 
-  function hydratePlaces() {
-    const pins = [...placePins.querySelectorAll(".place-pin")];
-    pins.forEach((pin) => {
-      const selected = pin.dataset.place === state.place;
-      pin.classList.toggle("selected", selected);
-      pin.setAttribute("aria-pressed", selected ? "true" : "false");
+  // ---------- place picker (Leaflet + OpenStreetMap) ----------
+  // Leaflet measures its container on init, so it must not be initialized
+  // while #page-details is display:none — this is called lazily from
+  // showPage() the first time the details page becomes visible.
+  function initLeafletMap() {
+    if (leafletMap) return;
+    leafletMap = L.map(leafletMapEl, { worldCopyJump: true }).setView([20, 0], 2);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+    }).addTo(leafletMap);
+
+    leafletMap.on("click", (event) => {
+      placeMarkerAt(event.latlng.lat, event.latlng.lng);
+      reverseGeocode(event.latlng.lat, event.latlng.lng);
+      playTone(500, 0.08, "square", 0.07);
     });
+
+    if (state.placeLat != null && state.placeLng != null) {
+      placeMarkerAt(state.placeLat, state.placeLng);
+      leafletMap.setView([state.placeLat, state.placeLng], 6);
+    }
   }
 
-  // fetched (not inlined in index.html) so the ~380KB path data doesn't
-  // bloat the main document — injecting the markup into a real DOM node
-  // (rather than an <img>) is what lets styles.css theme it via the
-  // .continent class and currentColor/var(--panel) below.
-  function loadWorldMap() {
-    fetch("world-map.svg")
-      .then((response) => (response.ok ? response.text() : Promise.reject(new Error("map fetch failed"))))
-      .then((svgMarkup) => {
-        worldMapSvg.innerHTML = svgMarkup;
+  // creates the marker on first use, otherwise just repositions it —
+  // shared by map clicks, marker drags, and search results so there's
+  // one place that owns "how a chosen point gets marked on the map".
+  function placeMarkerAt(lat, lng) {
+    state.placeLat = lat;
+    state.placeLng = lng;
+    if (!placeMarker) {
+      placeMarker = L.marker([lat, lng], { draggable: true }).addTo(leafletMap);
+      placeMarker.on("dragend", () => {
+        const pos = placeMarker.getLatLng();
+        placeMarkerAt(pos.lat, pos.lng);
+        reverseGeocode(pos.lat, pos.lng);
+      });
+    } else {
+      placeMarker.setLatLng([lat, lng]);
+    }
+    persistState();
+    if (currentPage === "confirm") renderSummary();
+  }
+
+  function reverseGeocode(lat, lng) {
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${lat}&lon=${lng}`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        state.placeLabel = data ? buildPlaceLabel(data) : coordsLabel(lat, lng);
+        persistState();
+        if (currentPage === "confirm") renderSummary();
+      })
+      .catch(() => {
+        state.placeLabel = coordsLabel(lat, lng);
+        persistState();
+        if (currentPage === "confirm") renderSummary();
+      });
+  }
+
+  function runPlaceSearch() {
+    const query = placeSearchInput.value.trim();
+    if (!query || !leafletMap) return;
+    fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&addressdetails=1&q=${encodeURIComponent(query)}`)
+      .then((response) => (response.ok ? response.json() : []))
+      .then((results) => {
+        if (!results || !results.length) return;
+        const result = results[0];
+        const lat = Number(result.lat);
+        const lng = Number(result.lon);
+        leafletMap.setView([lat, lng], 12);
+        placeMarkerAt(lat, lng);
+        state.placeLabel = buildPlaceLabel(result);
+        persistState();
+        if (currentPage === "confirm") renderSummary();
       })
       .catch(() => {});
+  }
+
+  function coordsLabel(lat, lng) {
+    const latDir = lat >= 0 ? "N" : "S";
+    const lngDir = lng >= 0 ? "E" : "W";
+    return `${Math.abs(lat).toFixed(2)}°${latDir}, ${Math.abs(lng).toFixed(2)}°${lngDir}`;
+  }
+
+  // Nominatim's flat display_name is a full postal address (street number,
+  // road, suburb, ...) — naively taking its first couple of comma-segments
+  // often surfaces something like "Tour Eiffel, 5" (a house number). Build
+  // the short label from the structured `address` fields instead: the POI
+  // name (if any) plus the most relevant locality, falling back to
+  // display_name's segments only if address data is missing entirely.
+  function buildPlaceLabel(result) {
+    const addr = result.address || {};
+    const locality = addr.city || addr.town || addr.village || addr.municipality || addr.county || addr.state;
+    const parts = [];
+    if (result.name && result.name !== locality) parts.push(result.name);
+    if (locality) parts.push(locality);
+    if (parts.length < 2 && addr.country && !parts.includes(addr.country)) parts.push(addr.country);
+    if (parts.length) return parts.slice(0, 2).join(", ");
+    if (result.display_name) return result.display_name.split(",").slice(0, 2).map((part) => part.trim()).join(", ");
+    return "";
   }
 
   function hydrateMeter() {
@@ -803,12 +864,6 @@
     hydrateVibes();
     persistState();
     updateConfirmButton();
-  }
-
-  function selectPlace(place) {
-    state.place = place;
-    hydratePlaces();
-    persistState();
   }
 
   // ---------- routing ----------
@@ -847,6 +902,14 @@
       state.hasEnteredDetails = true;
       persistState();
       window.setTimeout(() => dateInput.focus(), 120);
+      // the .page slide-in transition means the container has no real
+      // size yet on this same tick — give it a moment before Leaflet
+      // measures it (both on first init and on every return visit, in
+      // case the viewport was resized while on another page).
+      window.setTimeout(() => {
+        initLeafletMap();
+        if (leafletMap) leafletMap.invalidateSize();
+      }, 150);
     }
 
     if (nextPage === "confirm") {
@@ -861,7 +924,7 @@
     const formattedDate = formatDate(state.date);
     const formattedTime = formatTime(state.time);
     const vibe = state.vibe ? vibeTitle(state.vibe) : t("vibeMysteryFallback");
-    const place = state.place ? placeName(state.place) : "";
+    const place = state.placeLabel || "";
     const levels = t("excitement");
     const level = levels[state.excitement] || levels[2];
 
@@ -1186,7 +1249,7 @@
     const formattedDate = formatDate(state.date);
     const formattedTime = formatTime(state.time);
     const vibe = state.vibe ? vibeTitle(state.vibe) : t("vibeMysteryFallback");
-    const place = state.place ? placeName(state.place) : "";
+    const place = state.placeLabel || "";
 
     wrapText(ctx, `📅  ${formattedDate}`, 50, 200, w - 100, 40);
     ctx.fillText(`🕒  ${formattedTime}`, 50, 260);

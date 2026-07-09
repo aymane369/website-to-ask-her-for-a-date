@@ -14,9 +14,15 @@ Live repo: https://github.com/aymane369/website-to-ask-her-for-a-date
   (+ `audio.mp3`). This is deliberate so it deploys straight to GitHub Pages
   by pointing Pages at the `master` branch — no CI/build pipeline.
 - **No external JS/CSS dependencies** other than the Google Fonts `<link>`
-  tags in `<head>`. Everything else (confetti, sound effects, canvas image
-  export, calendar export) is hand-rolled in `script.js` with zero libraries.
-- Three files only, referenced from `index.html`:
+  tags in `<head>`, **and Leaflet** (map library, loaded via `<link>`/`<script>`
+  from the unpkg CDN with SRI `integrity` hashes — see the place picker below).
+  Everything else (confetti, sound effects, canvas image export, calendar
+  export, icons) is hand-rolled in `script.js`/inline SVG with zero libraries.
+  Leaflet was an explicit, deliberate exception the owner asked for (they
+  first tried a hand-drawn/static map, decided it wasn't good enough for
+  actually picking a real meeting spot, and approved adding Leaflet
+  specifically — don't read this as an opening to add other dependencies).
+- Files, referenced from `index.html`:
   - `index.html` — markup for all three "pages" (they're really one document;
     see Architecture below)
   - `styles.css` — all styling, the neo-brutalist design system
@@ -72,11 +78,21 @@ CSS custom properties in `:root`, overridden under `html[data-theme="dark"]`:
   can visually disappear against a dark background in dark mode (icon color
   isn't theme-aware) — the custom picker sidesteps that entirely.
 - Vibe picker: 6 selectable cards (Pizza Night, Sushi Date, Movie Night, Cozy
-  Café, Adventure Day, Ice Cream Walk), each with an emoji in
-  `data-emoji` (used later by the Konami-code emoji rain).
+  Café, Adventure Day, Ice Cream Walk), each with a hand-rolled inline SVG
+  icon (see the icon sprite in `index.html`'s `<body>` — a `<symbol>`-based
+  sheet reused via `<use href="#icon-x">`). `data-emoji` is kept on each
+  card purely for the Konami-code emoji rain, which still uses actual emoji
+  as confetti.
+- **Place picker**: a real Leaflet map (`#leafletMap`) with OpenStreetMap
+  tiles. She can click the map, drag the dropped pin, or use the search box
+  (Nominatim geocoding) to jump to an address/city. Reverse-geocodes the
+  clicked point to a short label (`shortenPlaceLabel()` keeps just the
+  first two comma-separated segments of Nominatim's `display_name`).
+  Entirely optional — doesn't gate the confirm button.
 - Excitement meter: a slider (0–4) with a matching face/label from
-  `excitementLevels[]`.
-- Confirm button disabled until date + time + vibe are all valid.
+  `excitementLevels[]` (kept as real emoji — expressive faces, not chrome).
+- Confirm button disabled until date + time + vibe are all valid (place is
+  optional and not part of this check).
 
 **Confirm page**
 - Summary rendered as a "ticket" (`.ticket`) with punched-hole notches.
@@ -104,16 +120,27 @@ CSS custom properties in `:root`, overridden under `html[data-theme="dark"]`:
   vibe picked yet).
 - Ambient floating shapes drifting up the background continuously; a bigger
   confetti/heart burst plays when reaching the confirm page.
+- **EN/FR localization**: a language toggle (`#langToggle`) swaps every
+  `data-i18n`/`data-i18n-label`/`data-i18n-placeholder` string via the
+  `translations` table in `script.js` and re-runs the few dynamically
+  generated bits (ticker, No-button phrase, excitement label, confirm
+  summary) through `t()`/`applyLocale()`. Persisted to
+  `localStorage['date-ask-lang']`. Confirm-message copy is a per-locale
+  *function*, not a shared template with swapped words, since French word
+  order differs. `Intl.DateTimeFormat` also switches locale (`en-US`/`fr-FR`)
+  for date/time formatting.
 
 ## State & persistence
 
 - `sessionStorage['date-ask-state-v2']` — a JSON blob with the "session"
-  state: chosen date/time/vibe/excitement, No-button attempt count/surrender
-  status, whether details/confirm have been reached, last known pointer
-  position (used to steer the No button away from the cursor). Cleared by
-  the Reset button. This is intentionally `sessionStorage`, not
-  `localStorage` — each new visit/tab starts the ask flow fresh.
+  state: chosen date/time/vibe/excitement, `placeLat`/`placeLng`/`placeLabel`
+  (the map pin, all optional), No-button attempt count/surrender status,
+  whether details/confirm have been reached, last known pointer position
+  (used to steer the No button away from the cursor). Cleared by the Reset
+  button. This is intentionally `sessionStorage`, not `localStorage` — each
+  new visit/tab starts the ask flow fresh.
 - `localStorage['date-ask-theme']` — `"dark"` or absent/`"light"`.
+- `localStorage['date-ask-lang']` — `"fr"` or absent/`"en"`.
 - `localStorage['date-ask-muted']` — `"1"` or `"0"`.
 - `localStorage['date-ask-volume']` — `"0"`–`"100"` (string). **Careful**:
   when reading this, `localStorage.getItem()` returns `null` if unset, and
@@ -166,6 +193,15 @@ CSS custom properties in `:root`, overridden under `html[data-theme="dark"]`:
    `ReferenceError: Cannot access '...' before initialization` and silently
    kills the entire script (very easy mistake to reintroduce when moving
    code around).
+8. **Leaflet needs a *visible* container to measure.** `#page-details` is
+   `display: none` until you navigate to it, so `L.map(el)` cannot be
+   called at page load — it'll size itself against a 0×0 box and render
+   blank/broken tiles. `initLeafletMap()` is instead called lazily from
+   `showPage()` the first time `"details"` becomes active, after a short
+   `setTimeout` (the `.page` slide-in transition means even *then* the
+   container may not have its final layout box on the very same tick).
+   `leafletMap.invalidateSize()` is also called on every return to the
+   details page, in case the viewport changed size while elsewhere.
 
 ## Testing workflow used during development
 
@@ -188,9 +224,13 @@ There's no test suite. Changes were verified by actually running the site:
 
 - A way to preview/change the background music without editing the file
   directly (e.g. a small set of alternate tracks to choose from).
-- Multi-language support (currently English only, all copy is hardcoded in
-  `index.html`/`script.js`).
+- More languages beyond EN/FR — the `translations` table in `script.js` and
+  `data-i18n`/`data-i18n-label`/`data-i18n-placeholder` attributes in
+  `index.html` are the two places to extend.
 - More vibe options, or letting the "reasons to say yes" ticker text be
   customized per-recipient.
 - The Konami code is currently the only easter egg — could add more hidden
   triggers (e.g. a specific vibe + excitement combo).
+- The place picker has no default/suggested pins anymore (pure click/search
+  now) — could add a couple of quick-pick buttons for known favorite spots
+  if that turns out to be more convenient than always searching.
