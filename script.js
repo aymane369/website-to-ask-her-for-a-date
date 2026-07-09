@@ -58,6 +58,7 @@
       placeHelp: "Search a spot or click/drag the pin — pick exactly where you want to meet.",
       placeSearchPlaceholder: "Search for a city or address...",
       placeSearchButton: "Search",
+      placeMapError: "The map couldn't load — no worries, you can still pick a vibe and confirm without it.",
       excitementHeading: "How excited are you? (be honest, I'll know)",
       confirmButtonLabel: "It's a date! 💕",
       confirmTitle: "It's official!",
@@ -172,6 +173,7 @@
       placeHelp: "Cherche un endroit ou clique/glisse le repère — choisis exactement où tu veux qu'on se retrouve.",
       placeSearchPlaceholder: "Cherche une ville ou une adresse...",
       placeSearchButton: "Chercher",
+      placeMapError: "La carte n'a pas pu se charger — pas de souci, tu peux quand même choisir une ambiance et confirmer sans elle.",
       excitementHeading: "T'es excitée à quel point ? (sois honnête, je le saurai)",
       confirmButtonLabel: "C'est un rendez-vous ! 💕",
       confirmTitle: "C'est officiel !",
@@ -747,6 +749,15 @@
   // showPage() the first time the details page becomes visible.
   function initLeafletMap() {
     if (leafletMap) return;
+    // Leaflet is loaded from a third-party CDN with `defer`, so it should
+    // already be present by the time anyone reaches this page — but if
+    // that request was blocked (ad blocker, flaky network, CDN outage),
+    // fail soft here instead of throwing, which would otherwise happen
+    // inside a setTimeout and silently leave the map area blank forever.
+    if (typeof L === "undefined") {
+      leafletMapEl.textContent = t("placeMapError");
+      return;
+    }
     leafletMap = L.map(leafletMapEl, { worldCopyJump: true }).setView([20, 0], 2);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 18,
