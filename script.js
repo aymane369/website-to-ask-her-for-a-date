@@ -41,7 +41,7 @@
       minuteLabel: "Minute",
       timePickerDone: "Done",
       vibeHeading: "The vibe",
-      vibeHelp: "Pick one that sounds delightfully dangerous.",
+      vibeHelp: "Pick as many as sound delightfully dangerous — mix and match.",
       vibePizzaTitle: "Pizza Night",
       vibePizzaSub: "Cheesy, cozy, and never complicated.",
       vibeSushiTitle: "Sushi Date",
@@ -156,7 +156,7 @@
       minuteLabel: "Minute",
       timePickerDone: "OK",
       vibeHeading: "L'ambiance",
-      vibeHelp: "Choisis celle qui te semble délicieusement dangereuse.",
+      vibeHelp: "Choisis-en autant que tu veux, tant que ça semble délicieusement dangereux.",
       vibePizzaTitle: "Soirée Pizza",
       vibePizzaSub: "Fromage, confort, jamais compliqué.",
       vibeSushiTitle: "Sushi Date",
@@ -424,7 +424,7 @@
   vibeGrid.addEventListener("click", (event) => {
     const card = event.target.closest(".vibe-card");
     if (!card) return;
-    selectVibe(card.dataset.vibe);
+    toggleVibe(card.dataset.vibe);
     playTone(500, 0.08, "square", 0.07);
   });
 
@@ -568,6 +568,14 @@
   function vibeTitle(slug) {
     const vibes = t("vibes");
     return (vibes && vibes[slug] && vibes[slug].title) || slug;
+  }
+
+  // she can pick more than one vibe now (e.g. "Pizza Night + Movie Night"),
+  // so the display string is always built by joining whatever's selected.
+  function vibesLabel() {
+    const selected = state.vibes || [];
+    if (!selected.length) return t("vibeMysteryFallback");
+    return selected.map(vibeTitle).join(" + ");
   }
 
   function applyLocale() {
@@ -737,7 +745,7 @@
   function hydrateVibes() {
     const cards = [...vibeGrid.querySelectorAll(".vibe-card")];
     cards.forEach((card) => {
-      const selected = card.dataset.vibe === state.vibe;
+      const selected = (state.vibes || []).includes(card.dataset.vibe);
       card.classList.toggle("selected", selected);
       card.setAttribute("aria-pressed", selected ? "true" : "false");
     });
@@ -866,12 +874,18 @@
     syncTimeBounds();
     const hasDate = Boolean(dateInput.value) && isSelectableDate(dateInput.value);
     const hasTime = Boolean(timeInput.value) && isValidTimeSelection();
-    const hasVibe = Boolean(state.vibe);
+    const hasVibe = Boolean(state.vibes && state.vibes.length);
     confirmButton.disabled = !(hasDate && hasTime && hasVibe);
   }
 
-  function selectVibe(vibe) {
-    state.vibe = vibe;
+  function toggleVibe(vibe) {
+    if (!state.vibes) state.vibes = [];
+    const index = state.vibes.indexOf(vibe);
+    if (index === -1) {
+      state.vibes.push(vibe);
+    } else {
+      state.vibes.splice(index, 1);
+    }
     hydrateVibes();
     persistState();
     updateConfirmButton();
@@ -934,7 +948,7 @@
   function renderSummary() {
     const formattedDate = formatDate(state.date);
     const formattedTime = formatTime(state.time);
-    const vibe = state.vibe ? vibeTitle(state.vibe) : t("vibeMysteryFallback");
+    const vibe = vibesLabel();
     const place = state.placeLabel || "";
     const levels = t("excitement");
     const level = levels[state.excitement] || levels[2];
@@ -1190,7 +1204,7 @@
     const start = new Date(`${state.date}T${state.time}:00`);
     if (Number.isNaN(start.getTime())) return;
     const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
-    const vibe = state.vibe ? vibeTitle(state.vibe) : "Our Date";
+    const vibe = vibesLabel();
 
     const ics = [
       "BEGIN:VCALENDAR",
@@ -1259,7 +1273,7 @@
     ctx.font = "700 32px Arial, sans-serif";
     const formattedDate = formatDate(state.date);
     const formattedTime = formatTime(state.time);
-    const vibe = state.vibe ? vibeTitle(state.vibe) : t("vibeMysteryFallback");
+    const vibe = vibesLabel();
     const place = state.placeLabel || "";
 
     wrapText(ctx, `📅  ${formattedDate}`, 50, 200, w - 100, 40);
@@ -1375,7 +1389,7 @@
   function launchEggRain() {
     if (prefersReducedMotion) return;
     eggLayer.replaceChildren();
-    const emoji = (vibeEmojiFor(state.vibe) || ["🎉", "✨", "💫", "🥳"]);
+    const emoji = (vibesEmoji() || ["🎉", "✨", "💫", "🥳"]);
     const total = 60;
     for (let i = 0; i < total; i += 1) {
       const piece = document.createElement("span");
@@ -1394,9 +1408,17 @@
     }
   }
 
-  function vibeEmojiFor(vibe) {
-    const card = [...vibeGrid.querySelectorAll(".vibe-card")].find((el) => el.dataset.vibe === vibe);
-    return card ? [card.dataset.emoji, "✨", "🎉"] : null;
+  // pools the emoji from every selected vibe (she can pick more than one
+  // now) instead of just a single one, so the rain reflects the whole mix.
+  function vibesEmoji() {
+    const selected = state.vibes || [];
+    if (!selected.length) return null;
+    const cards = [...vibeGrid.querySelectorAll(".vibe-card")];
+    const emoji = selected
+      .map((slug) => cards.find((card) => card.dataset.vibe === slug))
+      .filter(Boolean)
+      .map((card) => card.dataset.emoji);
+    return emoji.length ? [...emoji, "✨", "🎉"] : null;
   }
 
   // ---------- sound fx ----------

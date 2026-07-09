@@ -77,22 +77,29 @@ CSS custom properties in `:root`, overridden under `html[data-theme="dark"]`:
   *because* the native time-picker icon is inconsistent across browsers and
   can visually disappear against a dark background in dark mode (icon color
   isn't theme-aware) — the custom picker sidesteps that entirely.
-- Vibe picker: 6 selectable cards (Pizza Night, Sushi Date, Movie Night, Cozy
-  Café, Adventure Day, Ice Cream Walk), each with a hand-rolled inline SVG
-  icon (see the icon sprite in `index.html`'s `<body>` — a `<symbol>`-based
-  sheet reused via `<use href="#icon-x">`). `data-emoji` is kept on each
-  card purely for the Konami-code emoji rain, which still uses actual emoji
-  as confetti.
+- Vibe picker: 6 **multi-select** cards (Pizza Night, Sushi Date, Movie
+  Night, Cozy Café, Adventure Day, Ice Cream Walk), each with a hand-rolled
+  inline SVG icon (see the icon sprite in `index.html`'s `<body>` — a
+  `<symbol>`-based sheet reused via `<use href="#icon-x">`). `state.vibes`
+  is an array, not a single value — `toggleVibe()` adds/removes on click,
+  and `vibesLabel()` joins whatever's selected with `" + "` (e.g. "Pizza
+  Night + Movie Night") everywhere a vibe needs to be displayed (ticket,
+  confirm message, calendar/PNG exports). At least one is required to
+  enable the confirm button. `data-emoji` is kept on each card purely for
+  the Konami-code emoji rain (`vibesEmoji()` pools emoji from *all*
+  selected vibes now), which still uses actual emoji as confetti.
 - **Place picker**: a real Leaflet map (`#leafletMap`) with OpenStreetMap
   tiles. She can click the map, drag the dropped pin, or use the search box
   (Nominatim geocoding) to jump to an address/city. Reverse-geocodes the
-  clicked point to a short label (`shortenPlaceLabel()` keeps just the
-  first two comma-separated segments of Nominatim's `display_name`).
+  clicked point to a short label via `buildPlaceLabel()`, which prefers
+  Nominatim's structured `address` fields (city/town/village + country)
+  over naively slicing `display_name` — the naive approach surfaced things
+  like a house number as the second segment (e.g. "Eiffel Tower, 5").
   Entirely optional — doesn't gate the confirm button.
 - Excitement meter: a slider (0–4) with a matching face/label from
   `excitementLevels[]` (kept as real emoji — expressive faces, not chrome).
-- Confirm button disabled until date + time + vibe are all valid (place is
-  optional and not part of this check).
+- Confirm button disabled until date + time + at least one vibe are valid
+  (place is optional and not part of this check).
 
 **Confirm page**
 - Summary rendered as a "ticket" (`.ticket`) with punched-hole notches.
@@ -133,7 +140,8 @@ CSS custom properties in `:root`, overridden under `html[data-theme="dark"]`:
 ## State & persistence
 
 - `sessionStorage['date-ask-state-v2']` — a JSON blob with the "session"
-  state: chosen date/time/vibe/excitement, `placeLat`/`placeLng`/`placeLabel`
+  state: chosen date/time/excitement, `vibes` (array of slugs, not a single
+  value — see the vibe picker above), `placeLat`/`placeLng`/`placeLabel`
   (the map pin, all optional), No-button attempt count/surrender status,
   whether details/confirm have been reached, last known pointer position
   (used to steer the No button away from the cursor). Cleared by the Reset
