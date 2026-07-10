@@ -508,6 +508,10 @@
     updateSoundIcon();
     applyVolumeToGraph();
     applyMusicVolume();
+    // dragging the volume up is as explicit an "I want sound" gesture as
+    // it gets — worth a direct retry in case the passive tap-anywhere
+    // unlock never caught (e.g. restrictive in-app browsers).
+    if (masterVolume > 0 && bgMusic.paused) attemptPlayMusic();
   });
 
   muteButton.addEventListener("click", () => {
@@ -517,7 +521,10 @@
     updateSoundIcon();
     applyVolumeToGraph();
     applyMusicVolume();
-    if (!muted) playTone(560, 0.08, "sine", 0.08);
+    if (!muted) {
+      playTone(560, 0.08, "sine", 0.08);
+      if (bgMusic.paused) attemptPlayMusic();
+    }
   });
 
   themeToggle.addEventListener("click", () => {
@@ -1479,14 +1486,28 @@
     // most browsers block audio until the visitor interacts with the
     // page at least once — try now, then unlock on the first interaction.
     attemptPlayMusic();
+    // in-app browsers (WhatsApp/Instagram/Messages link previews, etc.)
+    // are often stricter than a real mobile browser and can reject even
+    // a genuine tap's play() call — so unlike a plain "once" listener,
+    // keep retrying on every subsequent interaction until playback
+    // actually sticks (checked via `paused`, since a rejected play()
+    // leaves the element paused with no reliable error we can branch on).
     const unlock = () => {
+      if (!bgMusic.paused) {
+        stopListening();
+        return;
+      }
       attemptPlayMusic();
+    };
+    function stopListening() {
       document.removeEventListener("pointerdown", unlock);
       document.removeEventListener("keydown", unlock);
       document.removeEventListener("touchstart", unlock);
-    };
-    document.addEventListener("pointerdown", unlock, { once: true });
-    document.addEventListener("keydown", unlock, { once: true });
-    document.addEventListener("touchstart", unlock, { once: true });
+      document.removeEventListener("click", unlock);
+    }
+    document.addEventListener("pointerdown", unlock);
+    document.addEventListener("keydown", unlock);
+    document.addEventListener("touchstart", unlock);
+    document.addEventListener("click", unlock);
   }
 })();

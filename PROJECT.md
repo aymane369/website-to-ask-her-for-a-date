@@ -183,12 +183,25 @@ CSS custom properties in `:root`, overridden under `html[data-theme="dark"]`:
    math re-reads `getBoundingClientRect()` fresh on every dodge instead of
    reusing a size captured on the first dodge — otherwise later, longer
    phrases overflow a box sized for the first, shorter phrase.
-5. **Audio autoplay policy.** No browser allows audio-with-sound before the
-   visitor interacts with the page at least once. `initMusic()` calls
-   `bgMusic.play()` immediately (browsers just ignore/reject it silently)
-   and again on the very first `pointerdown`/`keydown`/`touchstart` anywhere
-   on the page. This is the best a static site can do — there is no way to
-   truly autoplay with sound before a gesture.
+5. **Audio autoplay policy — and don't give up after one try.** No browser
+   allows audio-with-sound before the visitor interacts with the page at
+   least once. `initMusic()` calls `bgMusic.play()` immediately (rejected
+   silently), then again on `pointerdown`/`keydown`/`touchstart`/`click`.
+   The first version of this only listened `{ once: true }` — if that
+   single attempt got rejected, music stayed silent for the rest of the
+   session with no other code path ever calling `.play()` again, while the
+   mute/volume UI kept looking perfectly normal (those only touch
+   `.volume`/`.muted` on an element that was never actually playing). This
+   bit a real visitor: link opened from inside a messaging app's in-app
+   browser (WhatsApp/Instagram/etc.), which enforces stricter autoplay
+   rules than the visitor's real mobile browser and rejected the first
+   gesture. Fixed by not removing the listeners until `!bgMusic.paused`
+   confirms playback actually started, and by having the mute button and
+   volume slider *also* retry `attemptPlayMusic()` directly — clicking a
+   sound control is as explicit an "I want sound" gesture as exists, and
+   gives a working manual fallback even if passive tap-anywhere unlock
+   never catches. There is still no way to truly autoplay with sound
+   before any gesture at all — that's a real platform limit, not a bug.
 6. **iOS Safari ignores `<audio>.volume`.** `applyMusicVolume()` sets both
    `.volume` (respected by most browsers) and `.muted` (the one iOS actually
    honors) so mute at least works everywhere even if fine-grained volume
